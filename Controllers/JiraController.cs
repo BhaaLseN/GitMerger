@@ -10,6 +10,7 @@ namespace GitMerger.Controllers
 {
     public class JiraController : ApiController
     {
+        private readonly IGitMerger _gitMerger;
         private static readonly XmlDictionaryReaderQuotas InfiniteQuotas = new XmlDictionaryReaderQuotas
         {
             MaxArrayLength = int.MaxValue,
@@ -18,6 +19,12 @@ namespace GitMerger.Controllers
             MaxNameTableCharCount = int.MaxValue,
             MaxStringContentLength = int.MaxValue
         };
+
+        public JiraController(IGitMerger gitMerger)
+        {
+            _gitMerger = gitMerger;
+        }
+
         public string Get()
         {
             return "nuuuuh";
@@ -55,7 +62,7 @@ namespace GitMerger.Controllers
         }
         private void TriggerMerge(MergeRequest mergeRequest)
         {
-            throw new System.NotImplementedException();
+            _gitMerger.QueueRequest(mergeRequest);
         }
     }
 }
