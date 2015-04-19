@@ -34,6 +34,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>packages\Castle.Core.3.3.0\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Windsor">
+      <HintPath>packages\Castle.Windsor.3.3.0\lib\net45\Castle.Windsor.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Owin">
       <HintPath>packages\Microsoft.Owin.2.0.2\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
@@ -70,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\JiraController.cs" />
+    <Compile Include="Infrastructure\CastleDependencyResolver.cs" />
     <Compile Include="Git\MergeRequest.cs" />
     <Compile Include="Jira\IssueDetails.cs" />
     <Compile Include="Program.cs" />

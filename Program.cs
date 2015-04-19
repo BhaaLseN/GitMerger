@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Web.Http;
 using Microsoft.Owin.Hosting;
 
 namespace GitMerger
@@ -14,6 +13,7 @@ namespace GitMerger
                 Console.WriteLine("Return to close");
                 Console.ReadLine();
             }
+            Startup.Shutdown();
         }
     }
 }
