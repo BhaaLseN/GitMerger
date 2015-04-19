@@ -6,8 +6,10 @@ namespace GitMerger.Git
     class GitMerger : IGitMerger
     {
         private readonly BlockingCollection<MergeRequest> _mergeRequests = new BlockingCollection<MergeRequest>();
-        public GitMerger()
+        private readonly IGitRepositoryManager _repositoryManager;
+        public GitMerger(IGitRepositoryManager repositoryManager)
         {
+            _repositoryManager = repositoryManager;
             Task.Run(() => HandleMergeRequests());
         }
         #region IGitMerger Members

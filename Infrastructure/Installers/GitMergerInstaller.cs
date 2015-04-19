@@ -15,6 +15,10 @@ namespace GitMerger.Infrastructure.Installers
                 .For<IGitMerger>()
                 .ImplementedBy<GitMerger.Git.GitMerger>()
                 .LifeStyle.Singleton);
+            container.Register(Component
+                .For<IGitRepositoryManager>()
+                .ImplementedBy<GitRepositoryManager>()
+                .LifeStyle.Singleton);
         }
 
         #endregion

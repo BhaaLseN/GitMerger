@@ -77,11 +77,16 @@
   <ItemGroup>
     <Compile Include="Controllers\JiraController.cs" />
     <Compile Include="Git\GitMerger.cs" />
+    <Compile Include="Git\GitRepository.cs" />
+    <Compile Include="Git\GitRepositoryManager.cs" />
     <Compile Include="Git\IGitMerger.cs" />
+    <Compile Include="Git\IGitRepositoryManager.cs" />
     <Compile Include="Infrastructure\CastleDependencyResolver.cs" />
     <Compile Include="Git\MergeRequest.cs" />
+    <Compile Include="Infrastructure\Installers\Settings\GitSettingsInstaller.cs" />
     <Compile Include="Infrastructure\Installers\Settings\HostSettingsInstaller.cs" />
     <Compile Include="Infrastructure\Installers\Settings\JiraSettingsInstaller.cs" />
+    <Compile Include="Infrastructure\Settings\IGitSettings.cs" />
     <Compile Include="Infrastructure\Settings\IHostSettings.cs" />
     <Compile Include="Infrastructure\Settings\IJiraSettings.cs" />
     <Compile Include="Jira\IssueDetails.cs" />
