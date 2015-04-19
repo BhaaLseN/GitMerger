@@ -79,6 +79,7 @@
     <Compile Include="Infrastructure\CastleDependencyResolver.cs" />
     <Compile Include="Git\MergeRequest.cs" />
     <Compile Include="Jira\IssueDetails.cs" />
+    <Compile Include="Infrastructure\Installers\ControllerInstaller.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
