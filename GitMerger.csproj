@@ -80,6 +80,10 @@
     <Compile Include="Git\IGitMerger.cs" />
     <Compile Include="Infrastructure\CastleDependencyResolver.cs" />
     <Compile Include="Git\MergeRequest.cs" />
+    <Compile Include="Infrastructure\Installers\Settings\HostSettingsInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\Settings\JiraSettingsInstaller.cs" />
+    <Compile Include="Infrastructure\Settings\IHostSettings.cs" />
+    <Compile Include="Infrastructure\Settings\IJiraSettings.cs" />
     <Compile Include="Jira\IssueDetails.cs" />
     <Compile Include="Infrastructure\Installers\ControllerInstaller.cs" />
     <Compile Include="Infrastructure\Installers\GitMergerInstaller.cs" />

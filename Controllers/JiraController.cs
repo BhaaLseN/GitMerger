@@ -1,9 +1,11 @@
+using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Web.Http;
 using System.Xml;
 using System.Xml.Linq;
 using GitMerger.Git;
+using GitMerger.Infrastructure.Settings;
 using GitMerger.Jira;
 
 namespace GitMerger.Controllers
@@ -11,6 +13,7 @@ namespace GitMerger.Controllers
     public class JiraController : ApiController
     {
         private readonly IGitMerger _gitMerger;
+        private readonly IJiraSettings _jiraSettings;
         private static readonly XmlDictionaryReaderQuotas InfiniteQuotas = new XmlDictionaryReaderQuotas
         {
             MaxArrayLength = int.MaxValue,
@@ -20,9 +23,10 @@ namespace GitMerger.Controllers
             MaxStringContentLength = int.MaxValue
         };
 
-        public JiraController(IGitMerger gitMerger)
+        public JiraController(IGitMerger gitMerger, IJiraSettings jiraSettings)
         {
             _gitMerger = gitMerger;
+            _jiraSettings = jiraSettings;
         }
 
         public string Get()
@@ -55,8 +59,8 @@ namespace GitMerger.Controllers
             // no issue? try to merge anyways.
             if (mergeRequest.IssueDetails == null)
                 return true;
-            // Only trigger merges for "1" ("Fixed")
-            if (mergeRequest.IssueDetails.Resolution == "1")
+            // Only trigger merges for valid resolution states that indicate a successful closing of the issue
+            if (_jiraSettings.ValidResolutions.Contains(mergeRequest.IssueDetails.Resolution))
                 return true;
             return false;
         }
