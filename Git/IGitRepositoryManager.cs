@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using System;
+
 namespace GitMerger.Git
 {
     public interface IGitRepositoryManager
     {
-        IEnumerable<GitRepository> FindBranch(string branchName, bool isExactBranchName);
+        IEnumerable<GitRepositoryBranch> FindBranch(string branchName, bool isExactBranchName);
+        bool MergeAndPush(GitRepository repository, string branchName, string mergeInto);
     }
 }

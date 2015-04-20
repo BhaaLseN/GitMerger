@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
+
 namespace GitMerger.Git
 {
     class GitMerger : IGitMerger
@@ -33,7 +35,18 @@ namespace GitMerger.Git
         }
         private bool Merge(MergeRequest mergeRequest)
         {
-            return false;
+            var branches = _repositoryManager.FindBranch(mergeRequest.BranchName, mergeRequest.BranchNameIsExact).ToArray();
+            if (!branches.Any())
+                return false;
+
+            int successfulMerges = 0;
+            foreach (var branch in branches)
+            {
+                if (_repositoryManager.MergeAndPush(branch.Repository, branch.BranchName, "master"))
+                    successfulMerges++;
+                // TODO: remember/report on successful/failed merges
+            }
+            return successfulMerges == branches.Count();
         }
     }
 }

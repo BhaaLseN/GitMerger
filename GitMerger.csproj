@@ -76,8 +76,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\JiraController.cs" />
+    <Compile Include="Git\ExecuteResult.cs" />
     <Compile Include="Git\GitMerger.cs" />
     <Compile Include="Git\GitRepository.cs" />
+    <Compile Include="Git\GitRepositoryBranch.cs" />
     <Compile Include="Git\GitRepositoryManager.cs" />
     <Compile Include="Git\IGitMerger.cs" />
     <Compile Include="Git\IGitRepositoryManager.cs" />
