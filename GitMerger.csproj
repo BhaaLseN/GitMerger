@@ -89,6 +89,7 @@
     <Compile Include="Infrastructure\Settings\IGitSettings.cs" />
     <Compile Include="Infrastructure\Settings\IHostSettings.cs" />
     <Compile Include="Infrastructure\Settings\IJiraSettings.cs" />
+    <Compile Include="Infrastructure\Settings\RepositoryInfo.cs" />
     <Compile Include="Jira\IssueDetails.cs" />
     <Compile Include="Infrastructure\Installers\ControllerInstaller.cs" />
     <Compile Include="Infrastructure\Installers\GitMergerInstaller.cs" />
