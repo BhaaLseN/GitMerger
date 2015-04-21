@@ -142,7 +142,8 @@ namespace GitMerger.Git
         }
         private bool Initialize(GitRepository repository)
         {
-            var cloneResult = Git(repository, "clone --quiet \"{0}\" \"{1}\"", repository.RepositoryIdentifier, repository.LocalPath);
+            var cloneResult = Git(null, "clone --quiet \"{0}\" \"{1}\" --config user.name=\"{2}\" --config user.email=\"{3}\"",
+                repository.RepositoryIdentifier, repository.LocalPath, _gitSettings.UserName, _gitSettings.EMail);
             if (cloneResult.ExitCode != 0)
             {
                 Logger.Error(m => m("[{0}] Clone failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
