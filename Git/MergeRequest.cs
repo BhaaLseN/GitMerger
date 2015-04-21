@@ -57,5 +57,9 @@ namespace GitMerger.Git
         {
             get { return _issueDetails; }
         }
+        public string GetMergeAuthor()
+        {
+            return string.Format("{0} <{1}>", MergeUserName, MergeUserEmail);
+        }
     }
 }

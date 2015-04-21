@@ -42,7 +42,7 @@ namespace GitMerger.Git
             int successfulMerges = 0;
             foreach (var branch in branches)
             {
-                if (_repositoryManager.MergeAndPush(branch.Repository, branch.BranchName, "master"))
+                if (_repositoryManager.MergeAndPush(branch.Repository, branch.BranchName, "master", mergeRequest.GetMergeAuthor()))
                     successfulMerges++;
                 // TODO: remember/report on successful/failed merges
             }

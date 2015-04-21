@@ -69,7 +69,7 @@ namespace GitMerger.Git
             }
         }
 
-        public bool MergeAndPush(GitRepository repository, string branchName, string mergeInto)
+        public bool MergeAndPush(GitRepository repository, string branchName, string mergeInto, string mergeAuthor)
         {
             // should never happen, but check anyways
             if (!Exists(repository))
@@ -99,7 +99,7 @@ namespace GitMerger.Git
                 return false;
             }
 
-            var mergeResult = Git(repository, "merge --quiet --no-ff --no-stat -m \"Merge branch '{0}'\" origin/{0}", branchName);
+            var mergeResult = Git(repository, "merge --quiet --no-ff --no-stat origin/{0}", branchName);
             if (mergeResult.ExitCode != 0)
             {
                 Logger.Error(m => m("[{0}] Merge failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -107,6 +107,17 @@ namespace GitMerger.Git
                     string.Join("\r\n", mergeResult.StdoutLines), string.Join("\r\n", mergeResult.StderrLines)));
 
                 Git(repository, "merge --abort");
+                // TODO: log somewhere, or notify someone.
+                return false;
+            }
+
+            var commitResult = Git(repository, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
+                branchName, mergeAuthor);
+            if (commitResult.ExitCode != 0)
+            {
+                Logger.Error(m => m("[{0}] Commit-amend failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
+                    repository.RepositoryIdentifier, commitResult.ExitCode,
+                    string.Join("\r\n", commitResult.StdoutLines), string.Join("\r\n", commitResult.StderrLines)));
                 // TODO: log somewhere, or notify someone.
                 return false;
             }
