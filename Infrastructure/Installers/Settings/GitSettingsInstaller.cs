@@ -78,6 +78,8 @@ namespace GitMerger.Infrastructure.Installers.Settings
             public GitSettings()
             {
                 GitExecutable = "git.exe";
+                UserName = "Git Automerger";
+                EMail = "automerge@domain.tld";
                 RepositoryBasePath = Path.Combine(Path.GetDirectoryName(typeof(GitSettings).Assembly.Location), "repositories");
                 Repositories = new RepositoryInfo[0];
             }
@@ -85,10 +87,13 @@ namespace GitMerger.Infrastructure.Installers.Settings
             #region IGitSettings Members
 
             public string GitExecutable { get; set; }
+            public string UserName { get; set; }
+            public string EMail { get; set; }
             public string RepositoryBasePath { get; set; }
             public RepositoryInfo[] Repositories { get; set; }
 
             #endregion
+
         }
     }
 }
