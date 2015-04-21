@@ -7,9 +7,6 @@ namespace GitMerger.Jira
         private readonly string _key;
         private readonly string _summary;
 
-        /// <summary>
-        /// Summary for MergeRequestArgs
-        /// </summary>
         public IssueDetails(string key, string summary)
         {
             if (string.IsNullOrEmpty(key))
