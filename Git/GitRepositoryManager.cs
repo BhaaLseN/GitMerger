@@ -132,6 +132,16 @@ namespace GitMerger.Git
                 return false;
             }
 
+            var pushDeleteResult = Git(repository, "push --quiet --delete origin {0}", branchName);
+            if (pushDeleteResult.ExitCode != 0)
+            {
+                Logger.Error(m => m("[{0}] Push-delete failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
+                    repository.RepositoryIdentifier, pushDeleteResult.ExitCode,
+                    string.Join("\r\n", pushDeleteResult.StdoutLines), string.Join("\r\n", pushDeleteResult.StderrLines)));
+                // TODO: log somewhere, or notify someone.
+                return false;
+            }
+
             return true;
         }
 
