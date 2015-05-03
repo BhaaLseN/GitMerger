@@ -14,14 +14,6 @@ namespace GitMerger.Controllers
     {
         private readonly IGitMerger _gitMerger;
         private readonly IJiraSettings _jiraSettings;
-        private static readonly XmlDictionaryReaderQuotas InfiniteQuotas = new XmlDictionaryReaderQuotas
-        {
-            MaxArrayLength = int.MaxValue,
-            MaxBytesPerRead = int.MaxValue,
-            MaxDepth = int.MaxValue,
-            MaxNameTableCharCount = int.MaxValue,
-            MaxStringContentLength = int.MaxValue
-        };
 
         public JiraController(IGitMerger gitMerger, IJiraSettings jiraSettings)
         {
@@ -35,19 +27,9 @@ namespace GitMerger.Controllers
         }
         public void Post(string json)
         {
-            var reader = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json), InfiniteQuotas);
-            var doc = XDocument.Load(reader);
-
-            string transitionUserName = doc.Root.ElementValue("user", "displayName");
-            string transitionUserMail = doc.Root.ElementValue("user", "emailAddress");
-            string issueKey = doc.Root.ElementValue("issue", "key");
-            string issueSummary = doc.Root.ElementValue("issue", "fields", "summary");
-            string issueResolution = doc.Root.ElementValue("issue", "fields", "resolution", "id");
-
-            var issueDetails = new IssueDetails(issueKey, issueSummary)
-            {
-                Resolution = issueResolution,
-            };
+            var issueDetails = IssueDetails.ParseFromJson(json);
+            string transitionUserName = issueDetails.TransitionUserName;
+            string transitionUserMail = issueDetails.TransitionUserEMail;
             var mergeRequest = new MergeRequest(transitionUserName, transitionUserMail, issueDetails);
             if (ShouldTryToMerge(mergeRequest))
             {
