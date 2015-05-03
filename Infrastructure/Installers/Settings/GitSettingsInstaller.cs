@@ -82,6 +82,7 @@ namespace GitMerger.Infrastructure.Installers.Settings
                 EMail = "automerge@domain.tld";
                 RepositoryBasePath = Path.Combine(Path.GetDirectoryName(typeof(GitSettings).Assembly.Location), "repositories");
                 Repositories = new RepositoryInfo[0];
+                MergeDelay = TimeSpan.FromMinutes(5);
             }
 
             #region IGitSettings Members
@@ -89,6 +90,7 @@ namespace GitMerger.Infrastructure.Installers.Settings
             public string GitExecutable { get; set; }
             public string UserName { get; set; }
             public string EMail { get; set; }
+            public TimeSpan MergeDelay { get; set; }
             public string RepositoryBasePath { get; set; }
             public RepositoryInfo[] Repositories { get; set; }
 
