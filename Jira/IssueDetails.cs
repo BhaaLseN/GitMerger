@@ -48,12 +48,17 @@ namespace GitMerger.Jira
             var reader = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(jsonString), InfiniteQuotas);
             var doc = XDocument.Load(reader);
 
+            // user information will only be available when a transition is triggered; so lets call it "transition" values
             string transitionUserName = doc.Root.ElementValue("user", "displayName");
             string transitionUserMail = doc.Root.ElementValue("user", "emailAddress");
-            string issueKey = doc.Root.ElementValue("issue", "key");
-            string issueSummary = doc.Root.ElementValue("issue", "fields", "summary");
-            string issueResolution = doc.Root.ElementValue("issue", "fields", "resolution", "id");
-            string issueStatus = doc.Root.ElementValue("issue", "fields", "status", "id");
+
+            // issue details might be wrapped in an <issue> element (for the WebHook POST for example),
+            // but they might aswell appear directly (for any REST query)
+            var issueElement = doc.Root.Element("issue") ?? doc.Root;
+            string issueKey = issueElement.ElementValue("key");
+            string issueSummary = issueElement.ElementValue("fields", "summary");
+            string issueResolution = issueElement.ElementValue("fields", "resolution", "id");
+            string issueStatus = issueElement.ElementValue("fields", "status", "id");
 
             return new IssueDetails(issueKey, issueSummary)
             {

@@ -27,11 +27,18 @@ namespace GitMerger.Infrastructure.Installers.Settings
             {
                 // default value: "1" for "Fixed"
                 ValidResolutions = new string[] { "1" };
+                // default value: "10001" for "Done"
+                ClosedStatus = new string[] { "10001" };
             }
 
             #region IJiraSettings Members
 
             public string[] ValidResolutions { get; set; }
+            public string[] ClosedStatus { get; set; }
+
+            public string BaseUrl { get; set; }
+            public string UserName { get; set; }
+            public string Password { get; set; }
 
             #endregion
         }
