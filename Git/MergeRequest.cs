@@ -20,6 +20,8 @@ namespace GitMerger.Git
 
             _mergeUserName = mergeUserName;
             _mergeUserEmail = mergeUserEmail;
+
+            UpstreamBranch = "master";
         }
         public MergeRequest(string mergeUserName, string mergeUserEmail, string branchName)
             : this(mergeUserName, mergeUserEmail)
@@ -37,6 +39,7 @@ namespace GitMerger.Git
             _branchName = issueDetails.Key;
             _branchNameIsExact = false;
         }
+        public string UpstreamBranch { get; set; }
         public string BranchName
         {
             get { return _branchName; }
