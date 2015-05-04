@@ -70,10 +70,27 @@ namespace GitMerger.Git
             {
                 var mergeRequest = _mergeRequests.Take();
                 if (Merge(mergeRequest))
+                {
                     Console.WriteLine("Merged.");
+                    if (mergeRequest.IssueDetails != null)
+                        _jira.PostComment(mergeRequest.IssueDetails.Key, string.Format("Successfully merged '{0}' into '{1}' (on behalf of {2}).",
+                            mergeRequest.BranchName, mergeRequest.UpstreamBranch, MakeJiraReference(mergeRequest.IssueDetails.TransitionUserKey)));
+                }
                 else
+                {
                     Console.WriteLine("Could not merge...");
+                    if (mergeRequest.IssueDetails != null)
+                        _jira.PostComment(mergeRequest.IssueDetails.Key, string.Format("Failed to automatically merge '{0}' into '{1}'.\r\n\r\n{2} will need to do this by hand.",
+                            mergeRequest.BranchName, mergeRequest.UpstreamBranch, MakeJiraReference(mergeRequest.IssueDetails.AssigneeUserKey)));
+                }
             }
+        }
+
+        private static string MakeJiraReference(string userName)
+        {
+            if (string.IsNullOrEmpty(userName))
+                return "Someone";
+            return string.Format("[~{0}]", userName);
         }
         private bool Merge(MergeRequest mergeRequest)
         {

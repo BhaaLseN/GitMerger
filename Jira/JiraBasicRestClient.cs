@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Xml.Linq;
 using GitMerger.Infrastructure.Settings;
 
 namespace GitMerger.Jira
@@ -58,6 +60,45 @@ namespace GitMerger.Jira
             return null;
         }
 
+        public void PostComment(string issueKey, string comment)
+        {
+            var baseUri = new Uri(_jiraSettings.BaseUrl);
+            var requestUri = new Uri(baseUri, "rest/api/2/issue/" + issueKey + "/comment");
+            var request = WebRequest.CreateHttp(requestUri);
+            request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(_jiraSettings.UserName + ':' + _jiraSettings.Password));
+            request.ContentType = "application/json";
+            request.Method = "POST";
+            try
+            {
+                using (var requestStream = request.GetRequestStream())
+                {
+                    var postContent = new XDocument(new XElement("root",
+                        new XAttribute("type", "object"),
+                        new XElement("body",
+                            new XAttribute("type", "string"),
+                            comment)));
+                    using (var writer = JsonReaderWriterFactory.CreateJsonWriter(requestStream))
+                        postContent.Save(writer);
+                }
+                var response = request.GetResponse();
+                using (var streamReader = new StreamReader(response.GetResponseStream()))
+                {
+                    string responseString = streamReader.ReadToEnd();
+                    Logger.Debug(m => m("Response for PostComment: {0}", responseString));
+                    var httpResponse = response as HttpWebResponse;
+                    if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Created)
+                    {
+                        // TODO: maybe do something else too?
+                        Logger.Info(m => m("Comment successfully added to '{0}'.", issueKey));
+                    }
+                }
+            }
+            catch (WebException ex)
+            {
+                using (var streamReader = new StreamReader(ex.Response.GetResponseStream()))
+                    Logger.Error(m => m("Request to '{0}' apparently failed: {1}\r\n{2}", requestUri, ex.Message, streamReader.ReadToEnd()), ex);
+            }
+        }
         public bool IsClosed(IssueDetails issueDetails)
         {
             if (issueDetails == null)

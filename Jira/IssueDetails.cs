@@ -29,8 +29,12 @@ namespace GitMerger.Jira
         {
             get { return _summary; }
         }
+        public string TransitionUserKey { get; set; }
         public string TransitionUserName { get; set; }
         public string TransitionUserEMail { get; set; }
+        public string AssigneeUserKey { get; set; }
+        public string AssigneeUserName { get; set; }
+        public string AssigneeUserEMail { get; set; }
         public string Resolution { get; set; }
         public string Status { get; set; }
 
@@ -49,6 +53,7 @@ namespace GitMerger.Jira
             var doc = XDocument.Load(reader);
 
             // user information will only be available when a transition is triggered; so lets call it "transition" values
+            string transitionUserKey = doc.Root.ElementValue("user", "key");
             string transitionUserName = doc.Root.ElementValue("user", "displayName");
             string transitionUserMail = doc.Root.ElementValue("user", "emailAddress");
 
@@ -59,13 +64,21 @@ namespace GitMerger.Jira
             string issueSummary = issueElement.ElementValue("fields", "summary");
             string issueResolution = issueElement.ElementValue("fields", "resolution", "id");
             string issueStatus = issueElement.ElementValue("fields", "status", "id");
+            string assigneeUserKey = issueElement.ElementValue("fields", "assignee", "key");
+            string assigneeUserName = issueElement.ElementValue("fields", "assignee", "displayName");
+            string assigneeUserMail = issueElement.ElementValue("fields", "assignee", "emailAddress");
 
             return new IssueDetails(issueKey, issueSummary)
             {
                 Resolution = issueResolution,
                 Status = issueStatus,
+                // TODO: key vs. name, which one is correct? seems to be the same all the time...
+                TransitionUserKey = transitionUserKey,
                 TransitionUserName = transitionUserName,
                 TransitionUserEMail = transitionUserMail,
+                AssigneeUserKey = assigneeUserKey,
+                AssigneeUserName = assigneeUserName,
+                AssigneeUserEMail = assigneeUserMail,
             };
         }
     }
