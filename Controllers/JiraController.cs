@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Web.Http;
@@ -25,7 +26,12 @@ namespace GitMerger.Controllers
         {
             return "nuuuuh";
         }
-        public void Post(string json)
+        [HttpPost]
+        public async void Post(HttpRequestMessage request)
+        {
+            Post(await request.Content.ReadAsStringAsync());
+        }
+        private void Post(string json)
         {
             var issueDetails = IssueDetails.ParseFromJson(json);
             string transitionUserName = issueDetails.TransitionUserName;
