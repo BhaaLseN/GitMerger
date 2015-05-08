@@ -54,6 +54,9 @@ namespace GitMerger.Jira
 
             // user information will only be available when a transition is triggered; so lets call it "transition" values
             string transitionUserKey = doc.Root.ElementValue("user", "key");
+            // fallback to the name field; which seems to have the same value as key but is present more often
+            if (string.IsNullOrWhiteSpace(transitionUserKey))
+                transitionUserKey = doc.Root.ElementValue("user", "name");
             string transitionUserName = doc.Root.ElementValue("user", "displayName");
             string transitionUserMail = doc.Root.ElementValue("user", "emailAddress");
 
@@ -65,6 +68,8 @@ namespace GitMerger.Jira
             string issueResolution = issueElement.ElementValue("fields", "resolution", "id");
             string issueStatus = issueElement.ElementValue("fields", "status", "id");
             string assigneeUserKey = issueElement.ElementValue("fields", "assignee", "key");
+            if (string.IsNullOrWhiteSpace(assigneeUserKey))
+                assigneeUserKey = issueElement.ElementValue("fields", "assignee", "name");
             string assigneeUserName = issueElement.ElementValue("fields", "assignee", "displayName");
             string assigneeUserMail = issueElement.ElementValue("fields", "assignee", "emailAddress");
 
@@ -72,7 +77,6 @@ namespace GitMerger.Jira
             {
                 Resolution = issueResolution,
                 Status = issueStatus,
-                // TODO: key vs. name, which one is correct? seems to be the same all the time...
                 TransitionUserKey = transitionUserKey,
                 TransitionUserName = transitionUserName,
                 TransitionUserEMail = transitionUserMail,
