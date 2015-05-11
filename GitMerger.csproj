@@ -95,6 +95,8 @@
     <Compile Include="Git\GitRepositoryManager.cs" />
     <Compile Include="Git\IGitMerger.cs" />
     <Compile Include="Git\IGitRepositoryManager.cs" />
+    <Compile Include="Git\GitResult.cs" />
+    <Compile Include="Git\MergeResult.cs" />
     <Compile Include="Infrastructure\CastleDependencyResolver.cs" />
     <Compile Include="Git\MergeRequest.cs" />
     <Compile Include="Infrastructure\Installers\JiraInstaller.cs" />
