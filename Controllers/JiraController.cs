@@ -34,6 +34,8 @@ namespace GitMerger.Controllers
         private void Post(string json)
         {
             var issueDetails = IssueDetails.ParseFromJson(json);
+            if (issueDetails == null)
+                return;
             string transitionUserName = issueDetails.TransitionUserName;
             string transitionUserMail = issueDetails.TransitionUserEMail;
             var mergeRequest = new MergeRequest(transitionUserName, transitionUserMail, issueDetails);
@@ -48,6 +50,13 @@ namespace GitMerger.Controllers
             if (mergeRequest.IssueDetails == null)
                 return true;
             // Only trigger merges for valid resolution states that indicate a successful closing of the issue
+            // not a transition? most likely not a valid trigger for us.
+            if (!mergeRequest.IssueDetails.IsTransition)
+                return false;
+            // should the current transition not be one of the expected ones indicating "we went to Closed", skip the trigger aswell.
+            if (!_jiraSettings.ValidTransitions.Contains(mergeRequest.IssueDetails.TransitionId))
+                return false;
+            // do we like its current resolution? trigger a merge.
             if (_jiraSettings.ValidResolutions.Contains(mergeRequest.IssueDetails.Resolution))
                 return true;
             return false;

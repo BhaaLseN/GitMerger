@@ -29,6 +29,12 @@ namespace GitMerger.Jira
         {
             get { return _summary; }
         }
+        public bool IsTransition
+        {
+            get { return !string.IsNullOrWhiteSpace(TransitionId); }
+        }
+        public string TransitionId { get; set; }
+        public string TransitionName { get; set; }
         public string TransitionUserKey { get; set; }
         public string TransitionUserName { get; set; }
         public string TransitionUserEMail { get; set; }
@@ -59,6 +65,8 @@ namespace GitMerger.Jira
                 transitionUserKey = doc.Root.ElementValue("user", "name");
             string transitionUserName = doc.Root.ElementValue("user", "displayName");
             string transitionUserMail = doc.Root.ElementValue("user", "emailAddress");
+            string transitionId = doc.Root.ElementValue("transition", "transitionId");
+            string transitionName = doc.Root.ElementValue("transition", "transitionName");
 
             // issue details might be wrapped in an <issue> element (for the WebHook POST for example),
             // but they might aswell appear directly (for any REST query)
@@ -77,6 +85,8 @@ namespace GitMerger.Jira
             {
                 Resolution = issueResolution,
                 Status = issueStatus,
+                TransitionId = transitionId,
+                TransitionName = transitionName,
                 TransitionUserKey = transitionUserKey,
                 TransitionUserName = transitionUserName,
                 TransitionUserEMail = transitionUserMail,

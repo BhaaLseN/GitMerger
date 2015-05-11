@@ -25,6 +25,8 @@ namespace GitMerger.Infrastructure.Installers.Settings
         {
             public JiraSettings()
             {
+                // default value: "701" for "Resolved -> Closed"
+                ValidTransitions = new string[] { "701" };
                 // default value: "1" for "Fixed"
                 ValidResolutions = new string[] { "1" };
                 // default value: "10001" for "Done"
@@ -33,6 +35,7 @@ namespace GitMerger.Infrastructure.Installers.Settings
 
             #region IJiraSettings Members
 
+            public string[] ValidTransitions { get; set; }
             public string[] ValidResolutions { get; set; }
             public string[] ClosedStatus { get; set; }
 
