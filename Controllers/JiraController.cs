@@ -10,6 +10,8 @@ namespace GitMerger.Controllers
 {
     public class JiraController : ApiController
     {
+        private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<JiraController>();
+
         private readonly IGitMerger _gitMerger;
         private readonly IJiraSettings _jiraSettings;
 
@@ -41,6 +43,27 @@ namespace GitMerger.Controllers
             string transitionUserName = issueDetails.TransitionUserName;
             string transitionUserMail = issueDetails.TransitionUserEMail;
             var mergeRequest = new MergeRequest(transitionUserName, transitionUserMail, issueDetails);
+
+            // see if we have an upstream branch name set; so we can override the initial guess of "master"
+            if (!string.IsNullOrEmpty(_jiraSettings.UpstreamBranchFieldName) && issueDetails.CustomFields != null
+                && issueDetails.CustomFields.Contains(_jiraSettings.UpstreamBranchFieldName))
+            {
+                Logger.Debug(m => m("Checking {0} potential upstream branches: {1}",
+                    issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName].Count(),
+                    string.Join(", ", issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName])));
+                // technically, this could be a list or something. we'll just ignore all but the first one and hope it works out.
+                string upstreamBranch = issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(upstreamBranch))
+                {
+                    Logger.Info(m => m("Merge request for '{0}' uses upstream branch '{1}' instead of default '{2}'.", mergeRequest.BranchName, upstreamBranch, mergeRequest.UpstreamBranch));
+                    mergeRequest.UpstreamBranch = upstreamBranch;
+                }
+                else
+                {
+                    Logger.Info(m => m("Merge request for '{0}' uses default upstream branch '{1}'.", mergeRequest.BranchName, mergeRequest.UpstreamBranch));
+                }
+            }
+
             if (ShouldTryToMerge(mergeRequest))
             {
                 TriggerMerge(mergeRequest);

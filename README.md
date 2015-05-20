@@ -33,8 +33,9 @@ Configuration is mostly confined to App.config, which uses a trick to let Castle
 * ```ValidTransitions``` is an array of transitions inside Jira that count as valid triggers to begin a merge. Use the Jira REST API Browser or the Administrators Interface to find out the actual ID of a transition (or resolution/status).
 * ```ValidResolutions``` is an array of resolutions inside Jira that count as valid triggers to begin a merge. Even when a valid transition has happened, the resolution might be a "Won't Fix" type one that doesn't have a branch.
 * ```ClosedStatus``` is an array of status inside Jira that indicate an issue as "Closed" or otherwise "Should be merged".
-* ```DisableAutomergeFieldName``` is the name of a Jira custom field whose value may prevent the automatic merge. Used in combination with ```DisableAutomergeFieldValue``` which needs to match up.
+* ```DisableAutomergeFieldName``` is the name of a [Jira custom field](#jira-custom-fields) whose value may prevent the automatic merge. Used in combination with ```DisableAutomergeFieldValue``` which needs to match up.
 * ```DisableAutomergeFieldValue``` is the string value of the custom field specified by ```DisableAutomergeFieldName``` indicating opt-out for the automatic merge. Should the custom field of the issue be set to that value, no merge will be triggered and left for the assignee to take care of.
+* ```UpstreamBranchFieldName``` is the name of a [Jira custom field](#jira-custom-fields) whose value may specify the upstream branch (which the issue branch is merged into; instead of defaulting to "master").
 
 #### Git Settings (```gitSettings```)
 * ```GitExecutable``` is the full path to the Git executable so we can actually interact with a Git repository.
@@ -65,6 +66,16 @@ Internally, custom fields get an id (which can be seen in the Administration URL
 
 Assignees will then be able to set the checkbox to on and prevent any automatic merges from happening (for example on prototype branches that should not be merged, or on dependent branches that may need other prerequisites first which is not recorded in a Jira issue and thus not automergable).
 With the default Screen configuration, the field will only show up on issue details when the value is actually set and read nicely as "Automatic Merge: Disable" (depending on your wording from steps 2. and 3.)
+
+### Changing the default branch from "master" to something else
+1. Create a custom field of type "Text Field (single line)".
+2. Name the custom field in a way that the issue assignee recognizes its control over where the branch will be merged into.
+3. Save the field and assign it to the issue screens. This depends on your setup, but it might be a good idea to at least use the "Default Screen".
+
+Assignees will then be able to change the default branch into which the issue branch is merged. By default (and when the field is not set/empty), this branch will be "master".
+Changing this behavior might be a good idea when a longer running feature is developed in a parallel, master-like branch but should still receive the benefits of the automatic merge.
+
+A potential improvement to this feature would be to check for Epic Links, Parent/Sub-Tasks and other Issue Links and try those issue keys as branches first for convention.
 
 ## Infrastructure and Technology
 GitMerger uses the following components, mostly pulled from NuGet due to convinience reasons:
