@@ -6,6 +6,9 @@ namespace GitMerger.Infrastructure.Settings
         string[] ValidResolutions { get; }
         string[] ClosedStatus { get; }
 
+        string DisableAutomergeFieldName { get; }
+        string DisableAutomergeFieldValue { get; }
+
         string BaseUrl { get; }
         string UserName { get; }
         string Password { get; }

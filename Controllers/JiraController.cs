@@ -55,6 +55,9 @@ namespace GitMerger.Controllers
             // not a transition? most likely not a valid trigger for us.
             if (!mergeRequest.IssueDetails.IsTransition)
                 return false;
+            // never merge if the assignee opted out of the automatic merge
+            if (ShouldPreventAutomerge(mergeRequest.IssueDetails))
+                return false;
             // should the current transition not be one of the expected ones indicating "we went to Closed", skip the trigger aswell.
             if (!_jiraSettings.ValidTransitions.Contains(mergeRequest.IssueDetails.TransitionId))
                 return false;
@@ -62,6 +65,25 @@ namespace GitMerger.Controllers
             if (_jiraSettings.ValidResolutions.Contains(mergeRequest.IssueDetails.Resolution))
                 return true;
             return false;
+        }
+        private bool ShouldPreventAutomerge(IssueDetails issueDetails)
+        {
+            // no issue, no opt-out
+            if (issueDetails == null)
+                return false;
+            // no configuration for this? no opt-out
+            if (string.IsNullOrEmpty(_jiraSettings.DisableAutomergeFieldName))
+                return false;
+            if (string.IsNullOrEmpty(_jiraSettings.DisableAutomergeFieldValue))
+                return false;
+            // no matching custom field? no opt-out
+            if (issueDetails.CustomFields == null)
+                return false;
+            if (!issueDetails.CustomFields.Contains(_jiraSettings.DisableAutomergeFieldName))
+                return false;
+
+            // apparently the custom field is set; lets see if it has the value that indicates opt-out for the automerge
+            return issueDetails.CustomFields[_jiraSettings.DisableAutomergeFieldName].Contains(_jiraSettings.DisableAutomergeFieldValue);
         }
         private void TriggerMerge(MergeRequest mergeRequest)
         {

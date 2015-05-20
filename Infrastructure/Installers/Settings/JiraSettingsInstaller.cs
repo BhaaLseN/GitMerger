@@ -39,6 +39,9 @@ namespace GitMerger.Infrastructure.Installers.Settings
             public string[] ValidResolutions { get; set; }
             public string[] ClosedStatus { get; set; }
 
+            public string DisableAutomergeFieldName { get; set; }
+            public string DisableAutomergeFieldValue { get; set; }
+
             public string BaseUrl { get; set; }
             public string UserName { get; set; }
             public string Password { get; set; }

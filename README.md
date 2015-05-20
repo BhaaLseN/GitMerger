@@ -33,6 +33,8 @@ Configuration is mostly confined to App.config, which uses a trick to let Castle
 * ```ValidTransitions``` is an array of transitions inside Jira that count as valid triggers to begin a merge. Use the Jira REST API Browser or the Administrators Interface to find out the actual ID of a transition (or resolution/status).
 * ```ValidResolutions``` is an array of resolutions inside Jira that count as valid triggers to begin a merge. Even when a valid transition has happened, the resolution might be a "Won't Fix" type one that doesn't have a branch.
 * ```ClosedStatus``` is an array of status inside Jira that indicate an issue as "Closed" or otherwise "Should be merged".
+* ```DisableAutomergeFieldName``` is the name of a Jira custom field whose value may prevent the automatic merge. Used in combination with ```DisableAutomergeFieldValue``` which needs to match up.
+* ```DisableAutomergeFieldValue``` is the string value of the custom field specified by ```DisableAutomergeFieldName``` indicating opt-out for the automatic merge. Should the custom field of the issue be set to that value, no merge will be triggered and left for the assignee to take care of.
 
 #### Git Settings (```gitSettings```)
 * ```GitExecutable``` is the full path to the Git executable so we can actually interact with a Git repository.
@@ -51,7 +53,20 @@ Configuration is mostly confined to App.config, which uses a trick to let Castle
 6. Switch to "Post Functions" and hit the "Add a new post function" Link. Select the function created in Step 3.
 7. When using multiple workflows, repeat the Steps from 4. again for every affected workflow.
 
-## Infrastructure and Technolgy
+## Jira Custom Fields
+Some features might check for certain custom fields to alter behavior. Custom fields need to be configured using Administration > Issues > Fields > Custom Fields and assigned to an issue screen to show up. They need not be searchable, so they can be configured with a Search Template of "None".
+Internally, custom fields get an id (which can be seen in the Administration URL for the given field configuration) and show up as "cf[ID]" in a search query, or as "customfield_ID" in a REST result.
+
+### Automerge Opt-Out / Disable Automerge for a particular issue
+1. Create a custom field of type "Checkboxes" (for the lack of a better, built-in type that shows just a single yes/no selection).
+2. Name the custom field in a way that the issue assignee recognizes its opt-out value. For example, call it "Automatic Merge" (since its value will affect the automerge).
+3. Add exactly one value to the field, again using a name recognizable for the assignee. For example, call it "Disable" (so it reads "Automatic Merge: \[ \] Disable" on the issue screen). This is also the value that needs to be configured as ```DisableAutomergeFieldValue```.
+4. Save the field and assign it to the issue screens. This depends on your setup, but it might be a good idea to at least use the "Default Screen".
+
+Assignees will then be able to set the checkbox to on and prevent any automatic merges from happening (for example on prototype branches that should not be merged, or on dependent branches that may need other prerequisites first which is not recorded in a Jira issue and thus not automergable).
+With the default Screen configuration, the field will only show up on issue details when the value is actually set and read nicely as "Automatic Merge: Disable" (depending on your wording from steps 2. and 3.)
+
+## Infrastructure and Technology
 GitMerger uses the following components, mostly pulled from NuGet due to convinience reasons:
 * [ASP.Net WebApi](http://www.asp.net/web-api) and [OWIN](http://www.asp.net/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api) to self-host a simple HTTP service that can receive HTTP POST callbacks (such as the Jira WebHooks).
 * [Castle Windsor](http://www.castleproject.org/projects/windsor/) for Dependency Injection, because I've worked with Windsor for quite some time and grew fond of its features.
