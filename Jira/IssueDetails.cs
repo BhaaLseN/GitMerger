@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
@@ -43,6 +45,7 @@ namespace GitMerger.Jira
         public string AssigneeUserEMail { get; set; }
         public string Resolution { get; set; }
         public string Status { get; set; }
+        public ILookup<string, string> CustomFields { get; set; }
 
         private static readonly XmlDictionaryReaderQuotas InfiniteQuotas = new XmlDictionaryReaderQuotas
         {
@@ -81,6 +84,36 @@ namespace GitMerger.Jira
             string assigneeUserName = issueElement.ElementValue("fields", "assignee", "displayName");
             string assigneeUserMail = issueElement.ElementValue("fields", "assignee", "emailAddress");
 
+            // gather custom fields; someone might need them
+            var fields = issueElement.Element("fields");
+            var customFields = new List<Tuple<string, string>>();
+            if (fields != null)
+            {
+                foreach (var customField in fields.Elements().Where(e => e.Name.LocalName.StartsWith("customfield_")))
+                {
+                    string customFieldName = customField.Name.LocalName;
+                    string dataType = customField.AttributeValue("type");
+                    if (dataType == "null")
+                    {
+                        // most simple case: the field is not set - do not add it to the list at all
+                        continue;
+                    }
+                    else if (dataType == "array")
+                    {
+                        // field is an array: assume the contents are simple items that have a value each
+                        foreach (var item in customField.Elements("item"))
+                        {
+                            customFields.Add(new Tuple<string, string>(customFieldName, item.ElementValue("value")));
+                        }
+                    }
+                    else
+                    {
+                        // everything else: assume it is a simple type where the value is the string-content of the element
+                        customFields.Add(new Tuple<string, string>(customFieldName, customField.Value));
+                    }
+                }
+            }
+
             return new IssueDetails(issueKey, issueSummary)
             {
                 Resolution = issueResolution,
@@ -93,6 +126,7 @@ namespace GitMerger.Jira
                 AssigneeUserKey = assigneeUserKey,
                 AssigneeUserName = assigneeUserName,
                 AssigneeUserEMail = assigneeUserMail,
+                CustomFields = customFields.ToLookup(k => k.Item1, v => v.Item2),
             };
         }
     }
