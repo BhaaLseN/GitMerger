@@ -8,6 +8,7 @@ namespace GitMerger.Infrastructure.Settings
 
         string DisableAutomergeFieldName { get; }
         string DisableAutomergeFieldValue { get; }
+        string BranchFieldName { get; }
         string UpstreamBranchFieldName { get; }
 
         string BaseUrl { get; }

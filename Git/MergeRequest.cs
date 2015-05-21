@@ -5,8 +5,6 @@ namespace GitMerger.Git
 {
     public class MergeRequest
     {
-        private readonly string _branchName;
-        private readonly bool _branchNameIsExact;
         private readonly string _mergeUserName;
         private readonly string _mergeUserEmail;
         private readonly IssueDetails _issueDetails;
@@ -26,8 +24,8 @@ namespace GitMerger.Git
         public MergeRequest(string mergeUserName, string mergeUserEmail, string branchName)
             : this(mergeUserName, mergeUserEmail)
         {
-            _branchName = branchName;
-            _branchNameIsExact = true;
+            BranchName = branchName;
+            BranchNameIsExact = true;
         }
         public MergeRequest(string mergeUserName, string mergeUserEmail, IssueDetails issueDetails)
             : this(mergeUserName, mergeUserEmail)
@@ -36,18 +34,12 @@ namespace GitMerger.Git
                 throw new ArgumentNullException("issueDetails", "issueDetails is null.");
 
             _issueDetails = issueDetails;
-            _branchName = issueDetails.Key;
-            _branchNameIsExact = false;
+            BranchName = issueDetails.Key;
+            BranchNameIsExact = false;
         }
         public string UpstreamBranch { get; set; }
-        public string BranchName
-        {
-            get { return _branchName; }
-        }
-        public bool BranchNameIsExact
-        {
-            get { return _branchNameIsExact; }
-        }
+        public string BranchName { get; set; }
+        public bool BranchNameIsExact { get; set; }
         public string MergeUserName
         {
             get { return _mergeUserName; }
