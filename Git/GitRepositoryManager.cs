@@ -257,6 +257,9 @@ namespace GitMerger.Git
                 .ToArray();
         }
 
+        // TODO: this method doesn't really belong here...(along with some of the methods above)
+        //       might be better to have a Git class with utility methods; maybe even one thats bound
+        //       to a particular GitRepository instance so we don't have to pass it in all the time?
         private ExecuteResult Git(GitRepository repository, string format, params object[] args)
         {
             string workingDirectory = null;
