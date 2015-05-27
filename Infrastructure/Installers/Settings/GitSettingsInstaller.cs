@@ -40,17 +40,32 @@ namespace GitMerger.Infrastructure.Installers.Settings
             {
                 string uri = Get<string>(configuration, "uri");
                 string[] schemeAndRest = uri.Split(new char[] { ':' }, 2);
-                string relativePath;
-                if (schemeAndRest.Length == 2 && schemeAndRest[1].Substring(0, 2) != "//")
+                string relativePath = null;
+                if (schemeAndRest.Length == 2)
                 {
-                    // no colon, most likely an scp-style git reference
-                    relativePath = schemeAndRest[1];
+                    // see if we match something that isn't a scheme. leave relativePath as null if nothing in here matches
+                    if (schemeAndRest[0].Length == 1 && char.IsLetter(schemeAndRest[0][0]))
+                        // looks like a rooted windows file path without file:// scheme; lets assume its a path
+                        // Path.GetFileName returns the last segment; for a folder path this is the last folder name
+                        relativePath = Path.GetFileName(uri.TrimEnd('/', '\\'));
+                    else if (schemeAndRest[1].Substring(0, 2) != "//")
+                        // no colon, most likely an scp-style git reference
+                        relativePath = schemeAndRest[1];
                 }
-                else
+
+                if (string.IsNullOrEmpty(relativePath))
                 {
-                    // all other uris must have a scheme, or git won't recognize them either
-                    var builder = new UriBuilder(uri);
-                    relativePath = builder.Path.TrimStart('/');
+                    if (!uri.Contains(':'))
+                    {
+                        // not a single colon? assume this is some sort of path (relative or linux)
+                        relativePath = Path.GetFileName(uri.TrimEnd('/', '\\'));
+                    }
+                    else
+                    {
+                        // all other uris must have a scheme, or git won't recognize them either
+                        var builder = new UriBuilder(uri);
+                        relativePath = builder.Path.TrimStart('/');
+                    }
                 }
                 return new RepositoryInfo(uri, relativePath);
             }
