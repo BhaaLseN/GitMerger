@@ -1,22 +1,21 @@
+using System;
 using System.Web.Http;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
 using GitMerger.Infrastructure;
 using GitMerger.Infrastructure.Settings;
+using Microsoft.Owin.Hosting;
 using Owin;
 using WConfiguration = Castle.Windsor.Installer.Configuration;
 
 namespace GitMerger
 {
-    internal class Startup
+    public class Startup
     {
         private static readonly IWindsorContainer _container;
         private static readonly IHostSettings _hostSettings;
-
-        public static IHostSettings HostSettings
-        {
-            get { return _hostSettings; }
-        }
+        private static IDisposable _app;
+        private static bool _isDisposed;
 
         static Startup()
         {
@@ -26,9 +25,28 @@ namespace GitMerger
             _hostSettings = _container.Resolve<IHostSettings>();
         }
 
+        /// <summary>
+        /// Starts a WebApi Service and returns the base address used.
+        /// </summary>
+        /// <returns>The base address of the service</returns>
+        public static string Start()
+        {
+            _app = WebApp.Start<Startup>(_hostSettings.BaseAddress);
+            return _hostSettings.BaseAddress;
+        }
+
         public static void Shutdown()
         {
-            _container.Dispose();
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+                if (_app != null)
+                {
+                    _app.Dispose();
+                    _app = null;
+                }
+                _container.Dispose();
+            }
         }
 
         public void Configuration(IAppBuilder appBuilder)
