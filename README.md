@@ -18,7 +18,12 @@ Step 5. is the one that GitMerger aims to automate, and right now this even work
 Step 2. would be another thing that could easily be automated using a ```post-receive``` hook on the central Git repository server. And to make things nice, this could be taken care of by GitMerger aswell (since it has all the data available already); all it needs is a little push.
 
 ## Service Setup
-At the moment, GitMerger is just a Command line application and needs to be run by hand. For the future, a Windows Service host is planned to make it a real Windows Service. Other than that, it only needs some [configuration](#service-configuration).
+GitMerger comes in two flavours; as Command line application that can be run by hand and as Windows Service host to run automatically. While the Command line application simply runs, the Windows Service host needs to be registered using [```sc create```](https://technet.microsoft.com/en-us/library/bb490995.aspx#E0KC0AA):
+```
+sc create GitMerger binPath= "path/to/GitMerger.ServiceHost.exe" displayName= "Git-Jira Automerger"
+```
+```GitMerger``` is the service reference name, not the display name. Both arguments *require* the space after the equal-sign.
+Other than that, it only needs some [configuration](#service-configuration).
 
 ### Service configuration
 Configuration is mostly confined to App.config, which uses a trick to let Castle Windsor read the values into configuration objects automatically. The following configuration values are current present:
