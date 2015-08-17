@@ -116,6 +116,19 @@ namespace GitMerger.Git
                     };
                 }
 
+                var headBeforeMerge = Git(repository, "rev-parse HEAD");
+                if (headBeforeMerge.ExitCode != 0)
+                {
+                    Logger.Error(m => m("[{0}] Pre-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
+                        repository.RepositoryIdentifier,
+                        string.Join("\r\n", headBeforeMerge.StdoutLines), string.Join("\r\n", headBeforeMerge.StderrLines)));
+                    return new GitResult(false, "Pre-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.")
+                    {
+                        ExecuteResult = headBeforeMerge,
+                    };
+                }
+                string oldHeadRev = headBeforeMerge.StdoutLines.FirstOrDefault();
+
                 var mergeResult = Git(repository, "merge --quiet --no-ff --no-stat {0}/{1}", remoteName, branchName);
                 if (mergeResult.ExitCode != 0)
                 {
@@ -130,65 +143,95 @@ namespace GitMerger.Git
                     };
                 }
 
-                var commitResult = Git(repository, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
-                    branchName, mergeAuthor);
-                if (commitResult.ExitCode != 0)
+                var headAfterMerge = Git(repository, "rev-parse HEAD");
+                if (headAfterMerge.ExitCode != 0)
                 {
-                    Logger.Error(m => m("[{0}] Commit-amend failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                        repository.RepositoryIdentifier, commitResult.ExitCode,
-                        string.Join("\r\n", commitResult.StdoutLines), string.Join("\r\n", commitResult.StderrLines)));
-                    return new GitResult(false, "Failed to update commit message after merge.")
+                    Logger.Error(m => m("[{0}] Post-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
+                        repository.RepositoryIdentifier,
+                        string.Join("\r\n", headAfterMerge.StdoutLines), string.Join("\r\n", headAfterMerge.StderrLines)));
+
+                    Git(repository, "merge --abort");
+                    return new GitResult(false, "Post-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.")
                     {
-                        ExecuteResult = commitResult,
+                        ExecuteResult = headAfterMerge,
                     };
                 }
+                string newHeadRef = headAfterMerge.StdoutLines.FirstOrDefault();
 
-                var pushResult = Git(repository, "push --quiet {0} {1}", remoteName, mergeInto);
-                if (pushResult.ExitCode != 0)
+                bool branchAlreadyMerged = newHeadRef == oldHeadRev;
+                if (branchAlreadyMerged)
                 {
-                    Logger.Error(m => m("[{0}] Push failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                        repository.RepositoryIdentifier, pushResult.ExitCode,
-                        string.Join("\r\n", pushResult.StdoutLines), string.Join("\r\n", pushResult.StderrLines)));
-
-                    // see if reached our retry count; if not we'll just try again under the assumption someone else pushed to the
-                    // remote in the meantime.
-                    if (retryCount --> 0)
+                    Logger.Info(m => m("[{0}] Merge did not create a new commit; this branch has been merged already.", repository.RepositoryIdentifier));
+                }
+                else
+                {
+                    var commitResult = Git(repository, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
+                        branchName, mergeAuthor);
+                    if (commitResult.ExitCode != 0)
                     {
-                        // TODO: technically we should check if git told us to "fetch first" (ie. our merge simply had bad timing and
-                        //       someone else push their changes in the meantime. but since we only retry 3 times, it's easier to just ignore that.
-                        Logger.Info(m => m("Failed to push the merge; retrying {0}/{1}", (maxRetryCount - retryCount), maxRetryCount));
-
-                        // try to reset our target branch back; or we might run into issues when trying to re-do the merge
-                        var resetResult = Git(repository, "reset --hard --quiet {0}/{1}", remoteName, mergeInto);
-                        if (resetResult.ExitCode == 0)
+                        Logger.Error(m => m("[{0}] Commit-amend failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
+                            repository.RepositoryIdentifier, commitResult.ExitCode,
+                            string.Join("\r\n", commitResult.StdoutLines), string.Join("\r\n", commitResult.StderrLines)));
+                        return new GitResult(false, "Failed to update commit message after merge.")
                         {
-                            // add some wait time before retrying. the first retry will wait for 0 seconds (which effectively turns into a yield)
-                            // while all following retries wait for 5 seconds times the retry counter (so, 0s -> 5s -> 10s at most).
-                            Thread.Sleep(TimeSpan.FromSeconds((maxRetryCount - retryCount - 1) * 5));
-                            continue;
-                        }
+                            ExecuteResult = commitResult,
+                        };
                     }
 
-                    return new GitResult(false, "Failed to push branch '{0}' to '{1}' after merge. This was attempted {2} times, all of them unsuccessful.", mergeInto, remoteName, maxRetryCount)
+                    var pushResult = Git(repository, "push --quiet {0} {1}", remoteName, mergeInto);
+                    if (pushResult.ExitCode != 0)
                     {
-                        ExecuteResult = pushResult,
-                    };
+                        Logger.Error(m => m("[{0}] Push failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
+                            repository.RepositoryIdentifier, pushResult.ExitCode,
+                            string.Join("\r\n", pushResult.StdoutLines), string.Join("\r\n", pushResult.StderrLines)));
+
+                        // see if reached our retry count; if not we'll just try again under the assumption someone else pushed to the
+                        // remote in the meantime.
+                        if (retryCount --> 0)
+                        {
+                            // TODO: technically we should check if git told us to "fetch first" (ie. our merge simply had bad timing and
+                            //       someone else push their changes in the meantime. but since we only retry 3 times, it's easier to just ignore that.
+                            Logger.Info(m => m("Failed to push the merge; retrying {0}/{1}", (maxRetryCount - retryCount), maxRetryCount));
+
+                            // try to reset our target branch back; or we might run into issues when trying to re-do the merge
+                            var resetResult = Git(repository, "reset --hard --quiet {0}/{1}", remoteName, mergeInto);
+                            if (resetResult.ExitCode == 0)
+                            {
+                                // add some wait time before retrying. the first retry will wait for 0 seconds (which effectively turns into a yield)
+                                // while all following retries wait for 5 seconds times the retry counter (so, 0s -> 5s -> 10s at most).
+                                Thread.Sleep(TimeSpan.FromSeconds((maxRetryCount - retryCount - 1) * 5));
+                                continue;
+                            }
+                        }
+
+                        return new GitResult(false, "Failed to push branch '{0}' to '{1}' after merge. This was attempted {2} times, all of them unsuccessful.", mergeInto, remoteName, maxRetryCount)
+                        {
+                            ExecuteResult = pushResult,
+                        };
+                    }
                 }
 
                 var pushDeleteResult = Git(repository, "push --quiet --delete {0} {1}", remoteName, branchName);
                 if (pushDeleteResult.ExitCode != 0)
                 {
-                    Logger.Error(m => m("[{0}] Push-delete failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
+                    Logger.Warn(m => m("[{0}] Push-delete failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
                         repository.RepositoryIdentifier, pushDeleteResult.ExitCode,
                         string.Join("\r\n", pushDeleteResult.StdoutLines), string.Join("\r\n", pushDeleteResult.StderrLines)));
-                    // TODO: maybe we want to flag this as success, since its only cleanup? Needs some change on how successful merges deal with the message tho.
-                    return new GitResult(false, "Failed to delete remote branch '{0}/{1}' after the merge was successful.", remoteName, branchName)
+                    string message;
+                    if (branchAlreadyMerged)
+                        message = string.Format("Branch '{0}' was already merged, and deleting the remote branch '{1}/{0}' failed.", branchName, remoteName);
+                    else
+                        message = string.Format("Successfully merged '{0}' into '{1}', but deleting the remote branch '{2}/{0}' failed.", branchName, mergeInto, remoteName);
+                    return new GitResult(true, message)
                     {
                         ExecuteResult = pushDeleteResult,
                     };
                 }
 
-                return new GitResult(true, "Successfully merged '{0}' into '{1}' and deleted remote branch '{2}/{0}'.", branchName, mergeInto, remoteName);
+                if (branchAlreadyMerged)
+                    return new GitResult(true, "Branch '{0}' was already merged, but we deleted the left-over remote branch '{1}/{0}' for you.", branchName, remoteName);
+                else
+                    return new GitResult(true, "Successfully merged '{0}' into '{1}' and deleted remote branch '{2}/{0}'.", branchName, mergeInto, remoteName);
             }
         }
 

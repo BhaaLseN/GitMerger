@@ -142,7 +142,10 @@ namespace GitMerger.Git
                 if (mergeResult.Success)
                 {
                     // simple success message with status indicator icon
-                    sb.AppendFormat("(/) Branch {0} successfully merged into {1}.", mergeResult.Branch.BranchName, mergeRequest.UpstreamBranch);
+                    if (!string.IsNullOrEmpty(mergeResult.Result.Message))
+                        sb.AppendFormat("(/) {0}", mergeResult.Result.Message);
+                    else
+                        sb.AppendFormat("(/) Branch {0} successfully merged into {1}.", mergeResult.Branch.BranchName, mergeRequest.UpstreamBranch);
                     // TODO: maybe include revert instructions?
                 }
                 else
