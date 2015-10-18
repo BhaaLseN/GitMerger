@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using GitMerger.Infrastructure.Settings;
 
@@ -51,8 +52,16 @@ namespace GitMerger.Git
                 }
                 else
                 {
-                    string upperBranchName = branchName.ToUpperInvariant();
-                    var matchingBranches = branches.Where(branch => branch.ToUpperInvariant().Contains(upperBranchName));
+                    // since its not an exact match, we can assume it is a Jira issue key.
+                    // they follow the pattern "<project key>-<issue number>", where the issue number is strictly numeric;
+                    // and the project key only contains letters, numbers or the underscore (always starting with a letter).
+                    // append a negative look-ahead for digits, which should prevent matching partial issue numbers.
+                    // we cannot use word-boundaries here, since it will not match names such as JRA-123b or JRA-123_fixed.
+                    // NOTE: this is mostly convention being used in practise; this might not match all configurations on all systems.
+                    // FIXME: this does not account for the beginning of the branch name; but in practise we do not have overlap
+                    //        (and therefore don't need to check for it right now)
+                    var jiraIssueKey = new Regex(branchName + @"(?!\d)", RegexOptions.IgnoreCase);
+                    var matchingBranches = branches.Where(branch => jiraIssueKey.IsMatch(branch));
                     if (matchingBranches.Count() == 1)
                     {
                         Logger.Info(m => m("Found a branch name match for '{0}' (exact spelling is '{1}') in '{2}'.",
