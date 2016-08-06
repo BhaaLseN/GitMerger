@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -98,13 +97,6 @@ namespace GitMerger.Jira
                 using (var streamReader = new StreamReader(ex.Response.GetResponseStream()))
                     Logger.Error(m => m("Request to '{0}' apparently failed: {1}\r\n{2}", requestUri, ex.Message, streamReader.ReadToEnd()), ex);
             }
-        }
-        public bool IsClosed(IssueDetails issueDetails)
-        {
-            if (issueDetails == null)
-                throw new ArgumentNullException("issueDetails", "issueDetails is null.");
-
-            return _jiraSettings.ClosedStatus.Contains(issueDetails.Status);
         }
 
         #endregion

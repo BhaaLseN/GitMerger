@@ -14,21 +14,29 @@ namespace GitMerger.Git
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitMerger>();
 
         private readonly BlockingCollection<MergeRequest> _mergeRequests = new BlockingCollection<MergeRequest>();
+        private readonly IJiraSettings _jiraSettings;
         private readonly IJira _jira;
         private readonly IGitSettings _gitSettings;
         private readonly IGitRepositoryManager _repositoryManager;
 
-        public GitMerger(IGitRepositoryManager repositoryManager, IGitSettings gitSettings, IJira jira)
+        public GitMerger(IGitRepositoryManager repositoryManager, IGitSettings gitSettings, IJira jira, IJiraSettings jiraSettings)
         {
             _repositoryManager = repositoryManager;
             _gitSettings = gitSettings;
             _jira = jira;
+            _jiraSettings = jiraSettings;
             Task.Run(() => HandleMergeRequests());
         }
         #region IGitMerger Members
 
         public void QueueRequest(MergeRequest mergeRequest)
         {
+            // initially update the merge request with information from the POST request (or wherever it came from).
+            // we might do another update later to make sure the data is still relevant.
+            UpdateIssueDetails(mergeRequest, mergeRequest.IssueDetails);
+            if (!ShouldTryToMerge(mergeRequest))
+                return;
+
             Task.Run(() =>
             {
                 bool shouldMerge;
@@ -51,8 +59,10 @@ namespace GitMerger.Git
                     }
                     else
                     {
-                        shouldMerge = _jira.IsClosed(issueDetails);
-                        Logger.Info(m => m("Related Jira issue is {0}closed, {0}preceding with merge.", shouldMerge ? "" : "not "));
+                        shouldMerge = !ShouldPreventAutomerge(issueDetails);
+                        Logger.Info(m => m("Related Jira issue indicates it should {0}be merged, {0}preceding with merge.", shouldMerge ? "" : "not "));
+                        if (shouldMerge)
+                            UpdateIssueDetails(mergeRequest, issueDetails);
                     }
                 }
 
@@ -65,6 +75,96 @@ namespace GitMerger.Git
         }
 
         #endregion
+
+        private void UpdateIssueDetails(MergeRequest mergeRequest, IssueDetails issueDetails)
+        {
+            if (mergeRequest == null || issueDetails == null)
+                return;
+            if (issueDetails.CustomFields != null)
+            {
+                // see if we have an upstream branch name set; so we can override the initial guess of "master"
+                if (!string.IsNullOrEmpty(_jiraSettings.UpstreamBranchFieldName) &&
+                    issueDetails.CustomFields.Contains(_jiraSettings.UpstreamBranchFieldName))
+                {
+                    Logger.Debug(m => m("Checking {0} potential upstream branches: {1}",
+                        issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName].Count(),
+                        string.Join(", ", issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName])));
+                    // technically, this could be a list or something. we'll just ignore all but the first one and hope it works out.
+                    string upstreamBranch = issueDetails.CustomFields[_jiraSettings.UpstreamBranchFieldName].FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(upstreamBranch))
+                    {
+                        Logger.Info(m => m("Merge request for '{0}' uses upstream branch '{1}' instead of default '{2}'.", mergeRequest.BranchName, upstreamBranch, mergeRequest.UpstreamBranch));
+                        mergeRequest.UpstreamBranch = upstreamBranch;
+                    }
+                    else
+                    {
+                        Logger.Info(m => m("Merge request for '{0}' uses default upstream branch '{1}'.", mergeRequest.BranchName, mergeRequest.UpstreamBranch));
+                    }
+                }
+
+                // see if we have an actual branch name set instead of using the issue key
+                if (!string.IsNullOrEmpty(_jiraSettings.BranchFieldName) &&
+                    issueDetails.CustomFields.Contains(_jiraSettings.BranchFieldName))
+                {
+                    Logger.Debug(m => m("Checking {0} potential branch names: {1}",
+                        issueDetails.CustomFields[_jiraSettings.BranchFieldName].Count(),
+                        string.Join(", ", issueDetails.CustomFields[_jiraSettings.BranchFieldName])));
+                    // technically, this could be a list or something. we'll just ignore all but the first one and hope it works out.
+                    string branchName = issueDetails.CustomFields[_jiraSettings.BranchFieldName].FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(branchName))
+                    {
+                        Logger.Info(m => m("Merge request for '{0}' uses branch name '{1}' instead of issue key.", mergeRequest.BranchName, branchName));
+                        mergeRequest.BranchName = branchName;
+                        mergeRequest.BranchNameIsExact = true;
+                    }
+                    else
+                    {
+                        Logger.Info(m => m("Merge request for '{0}' uses issue key as branch name.", mergeRequest.BranchName));
+                    }
+                }
+            }
+        }
+
+        private bool ShouldTryToMerge(MergeRequest mergeRequest)
+        {
+            // no issue? try to merge anyways.
+            if (mergeRequest.IssueDetails == null)
+                return true;
+            // Only trigger merges for valid resolution states that indicate a successful closing of the issue
+            // not a transition? most likely not a valid trigger for us.
+            if (!mergeRequest.IssueDetails.IsTransition)
+                return false;
+            // never merge if the assignee opted out of the automatic merge
+            if (ShouldPreventAutomerge(mergeRequest.IssueDetails))
+                return false;
+            // should the current transition not be one of the expected ones indicating "we went to Closed", skip the trigger aswell.
+            if (!_jiraSettings.ValidTransitions.Contains(mergeRequest.IssueDetails.TransitionId))
+                return false;
+            // do we like its current resolution? trigger a merge.
+            if (_jiraSettings.ValidResolutions.Contains(mergeRequest.IssueDetails.Resolution))
+                return true;
+            return false;
+        }
+        private bool ShouldPreventAutomerge(IssueDetails issueDetails)
+        {
+            // no issue, no opt-out
+            if (issueDetails == null)
+                return false;
+            // no configuration for this? no opt-out
+            if (string.IsNullOrEmpty(_jiraSettings.DisableAutomergeFieldName))
+                return false;
+            if (string.IsNullOrEmpty(_jiraSettings.DisableAutomergeFieldValue))
+                return false;
+            // no matching custom field? no opt-out
+            if (issueDetails.CustomFields == null)
+                return false;
+            if (!issueDetails.CustomFields.Contains(_jiraSettings.DisableAutomergeFieldName))
+                return false;
+
+            // apparently the custom field is set; lets see if it has the value that indicates opt-out for the automerge
+            return issueDetails.CustomFields[_jiraSettings.DisableAutomergeFieldName].Contains(_jiraSettings.DisableAutomergeFieldValue);
+        }
+
         private void HandleMergeRequests()
         {
             while (!_mergeRequests.IsCompleted)
