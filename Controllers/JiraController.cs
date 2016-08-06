@@ -2,22 +2,17 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using GitMerger.Git;
-using GitMerger.Infrastructure.Settings;
 using GitMerger.Jira;
 
 namespace GitMerger.Controllers
 {
     public class JiraController : ApiController
     {
-        private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<JiraController>();
-
         private readonly IGitMerger _gitMerger;
-        private readonly IJiraSettings _jiraSettings;
 
-        public JiraController(IGitMerger gitMerger, IJiraSettings jiraSettings)
+        public JiraController(IGitMerger gitMerger)
         {
             _gitMerger = gitMerger;
-            _jiraSettings = jiraSettings;
         }
 
         public string Get()
@@ -42,11 +37,6 @@ namespace GitMerger.Controllers
             string transitionUserName = issueDetails.TransitionUserName;
             string transitionUserMail = issueDetails.TransitionUserEMail;
             var mergeRequest = new MergeRequest(transitionUserName, transitionUserMail, issueDetails);
-
-            TriggerMerge(mergeRequest);
-        }
-        private void TriggerMerge(MergeRequest mergeRequest)
-        {
             _gitMerger.QueueRequest(mergeRequest);
         }
     }
