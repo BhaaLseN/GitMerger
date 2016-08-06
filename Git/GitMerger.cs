@@ -56,8 +56,8 @@ namespace GitMerger.Git
                     }
                     else
                     {
-                        shouldMerge = _jira.IsClosed(issueDetails);
-                        Logger.Info(m => m("Related Jira issue is {0}closed, {0}preceding with merge.", shouldMerge ? "" : "not "));
+                        shouldMerge = !ShouldPreventAutomerge(issueDetails);
+                        Logger.Info(m => m("Related Jira issue indicates it should {0}be merged, {0}preceding with merge.", shouldMerge ? "" : "not "));
                     }
                 }
 
