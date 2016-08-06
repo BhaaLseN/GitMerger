@@ -61,6 +61,8 @@ namespace GitMerger.Git
                     {
                         shouldMerge = !ShouldPreventAutomerge(issueDetails);
                         Logger.Info(m => m("Related Jira issue indicates it should {0}be merged, {0}preceding with merge.", shouldMerge ? "" : "not "));
+                        if (shouldMerge)
+                            UpdateIssueDetails(mergeRequest, issueDetails);
                     }
                 }
 
