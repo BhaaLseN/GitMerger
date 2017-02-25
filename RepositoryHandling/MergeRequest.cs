@@ -12,9 +12,9 @@ namespace GitMerger.RepositoryHandling
         private MergeRequest(string mergeUserName, string mergeUserEmail)
         {
             if (string.IsNullOrEmpty(mergeUserName))
-                throw new ArgumentNullException("mergeUserName", "mergeUserName is null or empty.");
+                throw new ArgumentNullException(nameof(mergeUserName), $"{nameof(mergeUserName)} is null or empty.");
             if (string.IsNullOrEmpty(mergeUserEmail))
-                throw new ArgumentNullException("mergeUserEmail", "mergeUserEmail is null or empty.");
+                throw new ArgumentNullException(nameof(mergeUserEmail), $"{nameof(mergeUserEmail)} is null or empty.");
 
             _mergeUserName = mergeUserName;
             _mergeUserEmail = mergeUserEmail;
@@ -31,7 +31,7 @@ namespace GitMerger.RepositoryHandling
             : this(mergeUserName, mergeUserEmail)
         {
             if (issueDetails == null)
-                throw new ArgumentNullException("issueDetails", "issueDetails is null.");
+                throw new ArgumentNullException(nameof(issueDetails), $"{nameof(issueDetails)} is null.");
 
             _issueDetails = issueDetails;
             BranchName = issueDetails.Key;

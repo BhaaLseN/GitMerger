@@ -15,7 +15,7 @@ namespace GitMerger.RepositoryHandling
         public Git(IGitSettings gitSettings)
         {
             if (gitSettings == null)
-                throw new ArgumentNullException("gitSettings", "gitSettings is null.");
+                throw new ArgumentNullException(nameof(gitSettings), $"{nameof(gitSettings)} is null.");
             _gitSettings = gitSettings;
         }
 

@@ -9,9 +9,9 @@ namespace GitMerger.Infrastructure.Settings
         public RepositoryInfo(string original, string relativePath)
         {
             if (string.IsNullOrEmpty(original))
-                throw new ArgumentNullException("original", "original is null or empty.");
+                throw new ArgumentNullException(nameof(original), $"{nameof(original)} is null or empty.");
             if (string.IsNullOrEmpty(relativePath))
-                throw new ArgumentNullException("relativePath", "relativePath is null or empty.");
+                throw new ArgumentNullException(nameof(relativePath), $"{nameof(relativePath)} is null or empty.");
             RelativePath = relativePath;
             OriginalString = original;
         }

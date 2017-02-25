@@ -16,13 +16,13 @@ namespace GitMerger.IssueTracking
         public JiraBasicRestClient(IJiraSettings jiraSettings)
         {
             if (jiraSettings == null)
-                throw new ArgumentNullException("jiraSettings", "jiraSettings is null.");
+                throw new ArgumentNullException(nameof(jiraSettings), $"{nameof(jiraSettings)} is null.");
             if (string.IsNullOrEmpty(jiraSettings.BaseUrl))
-                throw new ArgumentException("jiraSettings.BaseUrl must be set to a valid Jira Base URL (ex. http://jira.host.tld:8080/ or http://my.domain.tld/jira/)", "jiraSettings");
+                throw new ArgumentException($"{nameof(jiraSettings)}.{nameof(jiraSettings.BaseUrl)} must be set to a valid Jira Base URL (ex. http://jira.host.tld:8080/ or http://my.domain.tld/jira/)", nameof(jiraSettings));
             if (string.IsNullOrEmpty(jiraSettings.UserName))
-                throw new ArgumentException("jiraSettings.UserName must be set to a valid Jira Users user name (that has both read permission to your projects and can post comments)", "jiraSettings");
+                throw new ArgumentException($"{nameof(jiraSettings)}.{nameof(jiraSettings.UserName)} must be set to a valid Jira Users user name (that has both read permission to your projects and can post comments)", nameof(jiraSettings));
             if (string.IsNullOrEmpty(jiraSettings.Password))
-                throw new ArgumentException("jiraSettings.Password must be set to to the password for jiraSettings.UserName", "jiraSettings");
+                throw new ArgumentException($"{nameof(jiraSettings)}.{nameof(jiraSettings.Password)} must be set to to the password for jiraSettings.UserName", nameof(jiraSettings));
 
             _jiraSettings = jiraSettings;
         }

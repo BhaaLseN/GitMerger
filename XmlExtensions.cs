@@ -8,14 +8,14 @@ namespace GitMerger
         public static string AttributeValue(this XElement element, XName name)
         {
             if (element == null)
-                throw new ArgumentNullException("element", "element is null.");
+                throw new ArgumentNullException(nameof(element), $"{nameof(element)} is null.");
             var attribute = element.Attribute(name);
             return attribute != null ? attribute.Value : string.Empty;
         }
         public static XElement ElementPath(this XElement element, params XName[] names)
         {
             if (element == null)
-                throw new ArgumentNullException("element", "element is null.");
+                throw new ArgumentNullException(nameof(element), $"{nameof(element)} is null.");
             foreach (XName name in names)
             {
                 element = element.Element(name);

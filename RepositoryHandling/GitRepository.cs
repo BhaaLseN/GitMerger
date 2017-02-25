@@ -20,11 +20,11 @@ namespace GitMerger.RepositoryHandling
         public GitRepository(string repositoryIdentifier, string localPath, IGitSettings gitSettings)
         {
             if (string.IsNullOrEmpty(repositoryIdentifier))
-                throw new ArgumentNullException("repositoryIdentifier", "repositoryIdentifier is null or empty.");
+                throw new ArgumentNullException(nameof(repositoryIdentifier), $"{nameof(repositoryIdentifier)} is null or empty.");
             if (string.IsNullOrEmpty(localPath))
-                throw new ArgumentNullException("localPath", "localPath is null or empty.");
+                throw new ArgumentNullException(nameof(localPath), $"{nameof(localPath)} is null or empty.");
             if (gitSettings == null)
-                throw new ArgumentNullException("gitSettings", "gitSettings is null.");
+                throw new ArgumentNullException(nameof(gitSettings), $"{nameof(gitSettings)} is null.");
 
             _repositoryIdentifier = repositoryIdentifier;
             _localPath = localPath;

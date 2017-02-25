@@ -7,9 +7,9 @@ namespace GitMerger.RepositoryHandling
         public GitRepositoryBranch(GitRepository repository, string branchName)
         {
             if (repository == null)
-                throw new ArgumentNullException("repository", "repository is null.");
+                throw new ArgumentNullException(nameof(repository), $"{nameof(repository)} is null.");
             if (string.IsNullOrEmpty(branchName))
-                throw new ArgumentNullException("branchName", "branchName is null or empty.");
+                throw new ArgumentNullException(nameof(branchName), $"{nameof(branchName)} is null or empty.");
             Repository = repository;
             BranchName = branchName;
         }
