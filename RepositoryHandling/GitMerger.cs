@@ -27,6 +27,7 @@ namespace GitMerger.RepositoryHandling
             _jiraSettings = jiraSettings;
             Task.Run(() => HandleMergeRequests());
         }
+
         #region IGitMerger Members
 
         public void QueueRequest(MergeRequest mergeRequest)

@@ -20,6 +20,7 @@ namespace GitMerger.IssueTracking
             Key = key;
             Summary = summary;
         }
+
         public string Key { get; }
         public string Summary { get; }
         public bool IsTransition

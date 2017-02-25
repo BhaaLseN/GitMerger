@@ -20,6 +20,7 @@ namespace GitMerger.RepositoryHandling
             _gitSettings = gitSettings;
             _git = new Git(_gitSettings);
         }
+
         #region IGitRepositoryManager Members
 
         public IEnumerable<GitRepositoryBranch> FindBranch(string branchName, bool isExactBranchName)

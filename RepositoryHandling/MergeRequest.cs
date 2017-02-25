@@ -33,12 +33,14 @@ namespace GitMerger.RepositoryHandling
             BranchName = issueDetails.Key;
             BranchNameIsExact = false;
         }
+
         public string UpstreamBranch { get; set; }
         public string BranchName { get; set; }
         public bool BranchNameIsExact { get; set; }
         public string MergeUserName { get; }
         public string MergeUserEmail { get; }
         public IssueDetails IssueDetails { get; }
+
         public string GetMergeAuthor()
         {
             return string.Format("{0} <{1}>", MergeUserName, MergeUserEmail);

@@ -13,6 +13,7 @@ namespace GitMerger.IssueTracking
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<JiraBasicRestClient>();
 
         private readonly IJiraSettings _jiraSettings;
+
         public JiraBasicRestClient(IJiraSettings jiraSettings)
         {
             if (jiraSettings == null)
@@ -26,6 +27,7 @@ namespace GitMerger.IssueTracking
 
             _jiraSettings = jiraSettings;
         }
+
         #region IJira Members
 
         public IssueDetails GetIssueDetails(string issueKey)

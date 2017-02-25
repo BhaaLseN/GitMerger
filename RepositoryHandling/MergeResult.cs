@@ -14,10 +14,12 @@ namespace GitMerger.RepositoryHandling
             Result = result;
             Branch = branch;
         }
+
         public bool Success
         {
             get { return Result.Success; }
         }
+
         public GitResult Result { get; }
         public GitRepositoryBranch Branch { get; }
     }

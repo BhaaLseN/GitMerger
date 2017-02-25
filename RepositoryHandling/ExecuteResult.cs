@@ -12,6 +12,7 @@ namespace GitMerger.RepositoryHandling
             StdoutLines = stdoutLines.ToArray();
             StderrLines = stderrLines.ToArray();
         }
+
         public ProcessStartInfo StartInfo { get; set; }
         public int ExitCode { get; }
         public string[] StdoutLines { get; }
