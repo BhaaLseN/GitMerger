@@ -1,4 +1,4 @@
-namespace GitMerger.Jira
+namespace GitMerger.IssueTracking
 {
     public interface IJira
     {

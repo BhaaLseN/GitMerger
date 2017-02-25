@@ -107,11 +107,11 @@
     <Compile Include="Infrastructure\Settings\IHostSettings.cs" />
     <Compile Include="Infrastructure\Settings\IJiraSettings.cs" />
     <Compile Include="Infrastructure\Settings\RepositoryInfo.cs" />
-    <Compile Include="Jira\IJira.cs" />
-    <Compile Include="Jira\IssueDetails.cs" />
+    <Compile Include="IssueTracking\IJira.cs" />
+    <Compile Include="IssueTracking\IssueDetails.cs" />
     <Compile Include="Infrastructure\Installers\ControllerInstaller.cs" />
     <Compile Include="Infrastructure\Installers\GitMergerInstaller.cs" />
-    <Compile Include="Jira\JiraBasicRestClient.cs" />
+    <Compile Include="IssueTracking\JiraBasicRestClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />

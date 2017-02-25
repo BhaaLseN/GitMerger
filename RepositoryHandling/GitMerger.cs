@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitMerger.Infrastructure.Settings;
-using GitMerger.Jira;
+using GitMerger.IssueTracking;
 
 namespace GitMerger.RepositoryHandling
 {

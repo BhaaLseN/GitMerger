@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml.Linq;
 using GitMerger.Infrastructure.Settings;
 
-namespace GitMerger.Jira
+namespace GitMerger.IssueTracking
 {
     class JiraBasicRestClient : IJira
     {

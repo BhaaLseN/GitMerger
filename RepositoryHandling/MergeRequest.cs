@@ -1,5 +1,5 @@
 using System;
-using GitMerger.Jira;
+using GitMerger.IssueTracking;
 
 namespace GitMerger.RepositoryHandling
 {
