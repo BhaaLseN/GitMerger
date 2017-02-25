@@ -46,8 +46,7 @@ namespace GitMerger.Infrastructure
 
         public void Dispose()
         {
-            if (_scope != null)
-                _scope.Dispose();
+            _scope?.Dispose();
         }
 
         #endregion

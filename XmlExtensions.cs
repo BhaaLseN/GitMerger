@@ -10,7 +10,7 @@ namespace GitMerger
             if (element == null)
                 throw new ArgumentNullException(nameof(element), $"{nameof(element)} is null.");
             var attribute = element.Attribute(name);
-            return attribute != null ? attribute.Value : string.Empty;
+            return attribute?.Value ?? string.Empty;
         }
         public static XElement ElementPath(this XElement element, params XName[] names)
         {
@@ -27,12 +27,12 @@ namespace GitMerger
         public static string ElementValue(this XElement element, params XName[] names)
         {
             var targetElement = element.ElementPath(names);
-            return targetElement != null ? targetElement.Value : string.Empty;
+            return targetElement?.Value ?? string.Empty;
         }
         public static string ElementValue(this XElement element, XName name)
         {
             var targetElement = element.Element(name);
-            return targetElement != null ? targetElement.Value : string.Empty;
+            return targetElement?.Value ?? string.Empty;
         }
     }
 }

@@ -46,7 +46,7 @@ namespace GitMerger.IssueTracking
                     string responseString = streamReader.ReadToEnd();
                     Logger.Debug(m => m("Response for IssueDetails: {0}", responseString));
                     var httpResponse = response as HttpWebResponse;
-                    if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.OK)
+                    if (httpResponse?.StatusCode == HttpStatusCode.OK)
                     {
                         // TODO: maybe check for Json?
                         return IssueDetails.ParseFromJson(responseString);
@@ -87,7 +87,7 @@ namespace GitMerger.IssueTracking
                     string responseString = streamReader.ReadToEnd();
                     Logger.Debug(m => m("Response for PostComment: {0}", responseString));
                     var httpResponse = response as HttpWebResponse;
-                    if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Created)
+                    if (httpResponse?.StatusCode == HttpStatusCode.Created)
                     {
                         // TODO: maybe do something else too?
                         Logger.Info(m => m("Comment successfully added to '{0}'.", issueKey));
