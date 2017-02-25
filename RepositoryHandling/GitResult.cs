@@ -1,5 +1,5 @@
 using System;
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public class GitResult
     {

@@ -1,7 +1,7 @@
 ﻿using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
-using GitMerger.Git;
+using GitMerger.RepositoryHandling;
 
 namespace GitMerger.Infrastructure.Installers
 {
@@ -13,7 +13,7 @@ namespace GitMerger.Infrastructure.Installers
         {
             container.Register(Component
                 .For<IGitMerger>()
-                .ImplementedBy<GitMerger.Git.GitMerger>()
+                .ImplementedBy<GitMerger.RepositoryHandling.GitMerger>()
                 .LifeStyle.Singleton);
             container.Register(Component
                 .For<IGitRepositoryManager>()

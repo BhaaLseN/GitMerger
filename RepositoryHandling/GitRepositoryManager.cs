@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using GitMerger.Infrastructure.Settings;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     class GitRepositoryManager : IGitRepositoryManager
     {

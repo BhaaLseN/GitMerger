@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public class ExecuteResult
     {

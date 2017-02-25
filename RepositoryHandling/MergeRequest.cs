@@ -1,7 +1,7 @@
 using System;
 using GitMerger.Jira;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public class MergeRequest
     {

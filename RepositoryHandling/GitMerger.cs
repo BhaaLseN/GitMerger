@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using GitMerger.Infrastructure.Settings;
 using GitMerger.Jira;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     class GitMerger : IGitMerger
     {

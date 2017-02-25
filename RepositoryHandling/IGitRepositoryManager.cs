@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public interface IGitRepositoryManager
     {
