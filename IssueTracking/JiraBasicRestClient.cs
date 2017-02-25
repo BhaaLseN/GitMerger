@@ -31,9 +31,9 @@ namespace GitMerger.IssueTracking
         public IssueDetails GetIssueDetails(string issueKey)
         {
             var baseUri = new Uri(_jiraSettings.BaseUrl);
-            var requestUri = new Uri(baseUri, "rest/api/2/issue/" + issueKey);
+            var requestUri = new Uri(baseUri, $"rest/api/2/issue/{issueKey}");
             var request = WebRequest.CreateHttp(requestUri);
-            request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(_jiraSettings.UserName + ':' + _jiraSettings.Password));
+            request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{_jiraSettings.UserName}:{_jiraSettings.Password}"));
             request.Accept = "application/json";
             request.Method = "GET";
             try
@@ -62,9 +62,9 @@ namespace GitMerger.IssueTracking
         public void PostComment(string issueKey, string comment)
         {
             var baseUri = new Uri(_jiraSettings.BaseUrl);
-            var requestUri = new Uri(baseUri, "rest/api/2/issue/" + issueKey + "/comment");
+            var requestUri = new Uri(baseUri, $"rest/api/2/issue/{issueKey}/comment");
             var request = WebRequest.CreateHttp(requestUri);
-            request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(_jiraSettings.UserName + ':' + _jiraSettings.Password));
+            request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{_jiraSettings.UserName}:{_jiraSettings.Password}"));
             request.ContentType = "application/json";
             request.Method = "POST";
             try
