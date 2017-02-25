@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -14,9 +13,12 @@ namespace GitMerger.RepositoryHandling
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitRepositoryManager>();
 
         private readonly IGitSettings _gitSettings;
+        private readonly Git _git;
+
         public GitRepositoryManager(IGitSettings gitSettings)
         {
             _gitSettings = gitSettings;
+            _git = new Git(_gitSettings);
         }
         #region IGitRepositoryManager Members
 
@@ -93,7 +95,7 @@ namespace GitMerger.RepositoryHandling
 
             const string remoteName = "origin"; // TODO: un-const and pass it in?
 
-            var checkoutResult = Git(repository, "checkout --quiet --force {0}", mergeInto);
+            var checkoutResult = _git.Execute(repository.LocalPath, "checkout --quiet --force {0}", mergeInto);
             if (checkoutResult.ExitCode != 0)
             {
                 Logger.Error(m => m("[{0}] Checkout failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -113,7 +115,7 @@ namespace GitMerger.RepositoryHandling
             // everything else will exit the loop and method at the same time with a return.
             while (true)
             {
-                var pullResult = Git(repository, "pull --quiet --ff --ff-only --no-stat {0} {1}", remoteName, mergeInto);
+                var pullResult = _git.Execute(repository.LocalPath, "pull --quiet --ff --ff-only --no-stat {0} {1}", remoteName, mergeInto);
                 if (pullResult.ExitCode != 0)
                 {
                     Logger.Error(m => m("[{0}] Pull failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -125,7 +127,7 @@ namespace GitMerger.RepositoryHandling
                     };
                 }
 
-                var headBeforeMerge = Git(repository, "rev-parse HEAD");
+                var headBeforeMerge = _git.Execute(repository.LocalPath, "rev-parse HEAD");
                 if (headBeforeMerge.ExitCode != 0)
                 {
                     Logger.Error(m => m("[{0}] Pre-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
@@ -138,28 +140,28 @@ namespace GitMerger.RepositoryHandling
                 }
                 string oldHeadRev = headBeforeMerge.StdoutLines.FirstOrDefault();
 
-                var mergeResult = Git(repository, "merge --quiet --no-ff --no-stat {0}/{1}", remoteName, branchName);
+                var mergeResult = _git.Execute(repository.LocalPath, "merge --quiet --no-ff --no-stat {0}/{1}", remoteName, branchName);
                 if (mergeResult.ExitCode != 0)
                 {
                     Logger.Error(m => m("[{0}] Merge failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
                         repository.RepositoryIdentifier, mergeResult.ExitCode,
                         string.Join("\r\n", mergeResult.StdoutLines), string.Join("\r\n", mergeResult.StderrLines)));
 
-                    Git(repository, "merge --abort");
+                    _git.Execute(repository.LocalPath, "merge --abort");
                     return new GitResult(false, "Failed to merge '{0}' into '{1}'.", branchName, mergeInto)
                     {
                         ExecuteResult = mergeResult,
                     };
                 }
 
-                var headAfterMerge = Git(repository, "rev-parse HEAD");
+                var headAfterMerge = _git.Execute(repository.LocalPath, "rev-parse HEAD");
                 if (headAfterMerge.ExitCode != 0)
                 {
                     Logger.Error(m => m("[{0}] Post-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
                         repository.RepositoryIdentifier,
                         string.Join("\r\n", headAfterMerge.StdoutLines), string.Join("\r\n", headAfterMerge.StderrLines)));
 
-                    Git(repository, "merge --abort");
+                    _git.Execute(repository.LocalPath, "merge --abort");
                     return new GitResult(false, "Post-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.")
                     {
                         ExecuteResult = headAfterMerge,
@@ -174,7 +176,7 @@ namespace GitMerger.RepositoryHandling
                 }
                 else
                 {
-                    var commitResult = Git(repository, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
+                    var commitResult = _git.Execute(repository.LocalPath, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
                         branchName, mergeAuthor);
                     if (commitResult.ExitCode != 0)
                     {
@@ -187,7 +189,7 @@ namespace GitMerger.RepositoryHandling
                         };
                     }
 
-                    var pushResult = Git(repository, "push --quiet {0} {1}", remoteName, mergeInto);
+                    var pushResult = _git.Execute(repository.LocalPath, "push --quiet {0} {1}", remoteName, mergeInto);
                     if (pushResult.ExitCode != 0)
                     {
                         Logger.Error(m => m("[{0}] Push failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -203,7 +205,7 @@ namespace GitMerger.RepositoryHandling
                             Logger.Info(m => m("Failed to push the merge; retrying {0}/{1}", (maxRetryCount - retryCount), maxRetryCount));
 
                             // try to reset our target branch back; or we might run into issues when trying to re-do the merge
-                            var resetResult = Git(repository, "reset --hard --quiet {0}/{1}", remoteName, mergeInto);
+                            var resetResult = _git.Execute(repository.LocalPath, "reset --hard --quiet {0}/{1}", remoteName, mergeInto);
                             if (resetResult.ExitCode == 0)
                             {
                                 // add some wait time before retrying. the first retry will wait for 0 seconds (which effectively turns into a yield)
@@ -220,7 +222,7 @@ namespace GitMerger.RepositoryHandling
                     }
                 }
 
-                var pushDeleteResult = Git(repository, "push --quiet --delete {0} {1}", remoteName, branchName);
+                var pushDeleteResult = _git.Execute(repository.LocalPath, "push --quiet --delete {0} {1}", remoteName, branchName);
                 if (pushDeleteResult.ExitCode != 0)
                 {
                     Logger.Warn(m => m("[{0}] Push-delete failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -262,7 +264,7 @@ namespace GitMerger.RepositoryHandling
         }
         private bool Initialize(GitRepository repository)
         {
-            var cloneResult = Git(null, "clone --quiet \"{0}\" \"{1}\" --config user.name=\"{2}\" --config user.email=\"{3}\"",
+            var cloneResult = _git.Execute(null, "clone --quiet \"{0}\" \"{1}\" --config user.name=\"{2}\" --config user.email=\"{3}\"",
                 repository.RepositoryIdentifier, repository.LocalPath, _gitSettings.UserName, _gitSettings.EMail);
             if (cloneResult.ExitCode != 0)
             {
@@ -277,7 +279,7 @@ namespace GitMerger.RepositoryHandling
         }
         private bool Update(GitRepository repository)
         {
-            var fetchResult = Git(repository, "fetch --prune --quiet origin");
+            var fetchResult = _git.Execute(repository.LocalPath, "fetch --prune --quiet origin");
             if (fetchResult.ExitCode != 0)
             {
                 Logger.Error(m => m("[{0}] Fetch failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -291,7 +293,7 @@ namespace GitMerger.RepositoryHandling
         }
         private string[] Branches(GitRepository repository)
         {
-            var branchResult = Git(repository, "branch --remotes --list --quiet");
+            var branchResult = _git.Execute(repository.LocalPath, "branch --remotes --list --quiet");
             if (branchResult.ExitCode != 0)
             {
                 Logger.Error(m => m("[{0}] Branch list failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
@@ -307,75 +309,6 @@ namespace GitMerger.RepositoryHandling
                 .Select(l => l.Substring("origin/".Length))
                 .Where(l => !string.IsNullOrWhiteSpace(l))
                 .ToArray();
-        }
-
-        // TODO: this method doesn't really belong here...(along with some of the methods above)
-        //       might be better to have a Git class with utility methods; maybe even one thats bound
-        //       to a particular GitRepository instance so we don't have to pass it in all the time?
-        private ExecuteResult Git(GitRepository repository, string format, params object[] args)
-        {
-            string workingDirectory = null;
-            if (repository != null)
-                workingDirectory = repository.LocalPath;
-
-            string arguments = string.Format(format, args);
-            var p = new Process
-            {
-                StartInfo = new ProcessStartInfo(_gitSettings.GitExecutable, arguments)
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = false,
-                    WorkingDirectory = workingDirectory,
-                }
-            };
-
-            Logger.Debug(m => m("Running command '{0}' with command line arguments (working directory is: '{1}'):\r\n{2}",
-                p.StartInfo.FileName, p.StartInfo.WorkingDirectory ?? "not set", p.StartInfo.Arguments));
-
-            var stdout = new List<string>();
-            var stderr = new List<string>();
-
-            var stdoutEvent = new ManualResetEvent(false);
-            var stderrEvent = new ManualResetEvent(false);
-            var exited = new ManualResetEvent(false);
-            p.OutputDataReceived += (s, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data))
-                    stdoutEvent.Set();
-                else
-                    stdout.Add(e.Data);
-            };
-            p.ErrorDataReceived += (s, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data))
-                    stderrEvent.Set();
-                else
-                    stderr.Add(e.Data);
-            };
-            p.Exited += (s, e) => exited.Set();
-            p.EnableRaisingEvents = true;
-
-            try
-            {
-                p.Start();
-                p.BeginOutputReadLine();
-                p.BeginErrorReadLine();
-                WaitHandle.WaitAll(new[] { stdoutEvent, stderrEvent, exited });
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(m => m("Running '{0}' failed with exception: {1}", p.StartInfo.FileName, ex.Message), ex);
-                if (!p.HasExited)
-                    p.Kill();
-            }
-
-            return new ExecuteResult(p.ExitCode, stdout, stderr)
-            {
-                StartInfo = p.StartInfo,
-            };
         }
     }
 }
