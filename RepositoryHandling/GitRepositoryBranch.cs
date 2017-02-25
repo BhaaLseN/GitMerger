@@ -13,7 +13,7 @@ namespace GitMerger.RepositoryHandling
             Repository = repository;
             BranchName = branchName;
         }
-        public GitRepository Repository { get; private set; }
-        public string BranchName { get; private set; }
+        public GitRepository Repository { get; }
+        public string BranchName { get; }
     }
 }

@@ -5,10 +5,6 @@ namespace GitMerger.RepositoryHandling
 {
     public class MergeRequest
     {
-        private readonly string _mergeUserName;
-        private readonly string _mergeUserEmail;
-        private readonly IssueDetails _issueDetails;
-
         private MergeRequest(string mergeUserName, string mergeUserEmail)
         {
             if (string.IsNullOrEmpty(mergeUserName))
@@ -16,8 +12,8 @@ namespace GitMerger.RepositoryHandling
             if (string.IsNullOrEmpty(mergeUserEmail))
                 throw new ArgumentNullException(nameof(mergeUserEmail), $"{nameof(mergeUserEmail)} is null or empty.");
 
-            _mergeUserName = mergeUserName;
-            _mergeUserEmail = mergeUserEmail;
+            MergeUserName = mergeUserName;
+            MergeUserEmail = mergeUserEmail;
 
             UpstreamBranch = "master";
         }
@@ -33,25 +29,16 @@ namespace GitMerger.RepositoryHandling
             if (issueDetails == null)
                 throw new ArgumentNullException(nameof(issueDetails), $"{nameof(issueDetails)} is null.");
 
-            _issueDetails = issueDetails;
+            IssueDetails = issueDetails;
             BranchName = issueDetails.Key;
             BranchNameIsExact = false;
         }
         public string UpstreamBranch { get; set; }
         public string BranchName { get; set; }
         public bool BranchNameIsExact { get; set; }
-        public string MergeUserName
-        {
-            get { return _mergeUserName; }
-        }
-        public string MergeUserEmail
-        {
-            get { return _mergeUserEmail; }
-        }
-        public IssueDetails IssueDetails
-        {
-            get { return _issueDetails; }
-        }
+        public string MergeUserName { get; }
+        public string MergeUserEmail { get; }
+        public IssueDetails IssueDetails { get; }
         public string GetMergeAuthor()
         {
             return string.Format("{0} <{1}>", MergeUserName, MergeUserEmail);

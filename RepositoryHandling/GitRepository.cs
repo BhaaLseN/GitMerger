@@ -9,8 +9,6 @@ namespace GitMerger.RepositoryHandling
     {
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitRepository>();
 
-        private readonly string _localPath;
-        private readonly string _repositoryIdentifier;
         private readonly IGitSettings _gitSettings;
         private readonly Git _git;
 
@@ -26,20 +24,14 @@ namespace GitMerger.RepositoryHandling
             if (gitSettings == null)
                 throw new ArgumentNullException(nameof(gitSettings), $"{nameof(gitSettings)} is null.");
 
-            _repositoryIdentifier = repositoryIdentifier;
-            _localPath = localPath;
+            RepositoryIdentifier = repositoryIdentifier;
+            LocalPath = localPath;
             _gitSettings = gitSettings;
             _git = new Git(gitSettings);
         }
 
-        public string LocalPath
-        {
-            get { return _localPath; }
-        }
-        public string RepositoryIdentifier
-        {
-            get { return _repositoryIdentifier; }
-        }
+        public string LocalPath { get; }
+        public string RepositoryIdentifier { get; }
 
         public bool Exists()
         {

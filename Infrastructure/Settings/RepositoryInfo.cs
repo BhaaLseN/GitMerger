@@ -4,8 +4,8 @@ namespace GitMerger.Infrastructure.Settings
 {
     public class RepositoryInfo
     {
-        public string OriginalString { get; private set; }
-        public string RelativePath { get; private set; }
+        public string OriginalString { get; }
+        public string RelativePath { get; }
         public RepositoryInfo(string original, string relativePath)
         {
             if (string.IsNullOrEmpty(original))
