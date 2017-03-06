@@ -82,6 +82,18 @@ namespace GitMerger.RepositoryHandling
                 .ToArray();
         }
 
+        public bool Checkout(string branch)
+        {
+            var checkoutResult = _git.Execute(LocalPath, "checkout --quiet --force {0}", branch);
+            if (checkoutResult.ExitCode != 0)
+            {
+                LogError(checkoutResult, $"Checkout of '{branch}' failed");
+                return false;
+            }
+
+            return true;
+        }
+
         private void LogError(ExecuteResult executeResult, string message)
         {
             Logger.Error(m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",

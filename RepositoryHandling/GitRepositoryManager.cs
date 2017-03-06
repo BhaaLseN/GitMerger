@@ -98,18 +98,8 @@ namespace GitMerger.RepositoryHandling
 
             string remoteName = repository.RemoteName;
 
-            var checkoutResult = _git.Execute(repository.LocalPath, "checkout --quiet --force {0}", mergeInto);
-            if (checkoutResult.ExitCode != 0)
-            {
-                Logger.Error(m => m("[{0}] Checkout failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                    repository.RepositoryIdentifier, checkoutResult.ExitCode,
-                    string.Join(Environment.NewLine, checkoutResult.StdoutLines),
-                    string.Join(Environment.NewLine, checkoutResult.StderrLines)));
-                return new GitResult(false, "Failed to switch to '{0}' before merge.", mergeInto)
-                {
-                    ExecuteResult = checkoutResult,
-                };
-            }
+            if (!repository.Checkout(mergeInto))
+                return repository.MakeFailureResult($"Failed to switch to branch '{mergeInto}' before merge.");
 
             // retry at most 3 times. having bad luck once during the push is one thing, but twice is unlikely.
             // more than that is probably not worth it and will just take up extra time we don't want to waste here.
