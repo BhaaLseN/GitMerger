@@ -122,6 +122,20 @@ namespace GitMerger.RepositoryHandling
             // TODO: can anyone make sense of a return value here? do we need/want one?
         }
 
+        public bool MergeAmendAuthor(string branch, string mergeAuthor)
+        {
+            var commitResult = _git.Execute(LocalPath,
+                "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
+                branch, mergeAuthor);
+            if (commitResult.ExitCode != 0)
+            {
+                LogError(commitResult, $"Commit-amend failed for merge of '{branch}' (on behalf of '{mergeAuthor}')");
+                return false;
+            }
+
+            return true;
+        }
+
         // assumes same "RemoteName" for the branch (defaulting to "origin")
         public bool Pull(string remoteBranch)
         {

@@ -136,19 +136,8 @@ namespace GitMerger.RepositoryHandling
                 }
                 else
                 {
-                    var commitResult = _git.Execute(repository.LocalPath, "commit --amend --quiet -m \"Merge branch '{0}'\" --author=\"{1}\"",
-                        branchName, mergeAuthor);
-                    if (commitResult.ExitCode != 0)
-                    {
-                        Logger.Error(m => m("[{0}] Commit-amend failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                            repository.RepositoryIdentifier, commitResult.ExitCode,
-                            string.Join(Environment.NewLine, commitResult.StdoutLines),
-                            string.Join(Environment.NewLine, commitResult.StderrLines)));
-                        return new GitResult(false, "Failed to update commit message after merge.")
-                        {
-                            ExecuteResult = commitResult,
-                        };
-                    }
+                    if (!repository.MergeAmendAuthor(branchName, mergeAuthor))
+                        return repository.MakeFailureResult("Failed to update commit message after merge.");
 
                     var pushResult = _git.Execute(repository.LocalPath, "push --quiet {0} {1}", remoteName, mergeInto);
                     if (pushResult.ExitCode != 0)
