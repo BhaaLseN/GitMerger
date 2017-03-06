@@ -149,6 +149,19 @@ namespace GitMerger.RepositoryHandling
             return true;
         }
 
+        // assumes same "RemoteName" for the branch (defaulting to "origin")
+        public bool Push(string branchRef)
+        {
+            var pushResult = _git.Execute(LocalPath, "push --quiet {0} {1}", RemoteName, branchRef);
+            if (pushResult.ExitCode != 0)
+            {
+                LogError(pushResult, $"Failed to push '{branchRef}' to remote '{RemoteName}'");
+                return false;
+            }
+
+            return true;
+        }
+
         public string GetHashFor(string rev)
         {
             var revParseResult = _git.Execute(LocalPath, "rev-parse {0}", rev);

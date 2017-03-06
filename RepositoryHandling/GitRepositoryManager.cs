@@ -139,14 +139,8 @@ namespace GitMerger.RepositoryHandling
                     if (!repository.MergeAmendAuthor(branchName, mergeAuthor))
                         return repository.MakeFailureResult("Failed to update commit message after merge.");
 
-                    var pushResult = _git.Execute(repository.LocalPath, "push --quiet {0} {1}", remoteName, mergeInto);
-                    if (pushResult.ExitCode != 0)
+                    if (!repository.Push(mergeInto))
                     {
-                        Logger.Error(m => m("[{0}] Push failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                            repository.RepositoryIdentifier, pushResult.ExitCode,
-                            string.Join(Environment.NewLine, pushResult.StdoutLines),
-                            string.Join(Environment.NewLine, pushResult.StderrLines)));
-
                         // see if reached our retry count; if not we'll just try again under the assumption someone else pushed to the
                         // remote in the meantime.
                         if (retryCount --> 0)
@@ -166,10 +160,9 @@ namespace GitMerger.RepositoryHandling
                             }
                         }
 
-                        return new GitResult(false, "Failed to push branch '{0}' to '{1}' after merge. This was attempted {2} times, all of them unsuccessful.", mergeInto, remoteName, maxRetryCount)
-                        {
-                            ExecuteResult = pushResult,
-                        };
+                        return repository.MakeFailureResult(string.Format(
+                            "Failed to push branch '{0}' to '{1}' after merge. This was attempted {2} times, all of them unsuccessful.",
+                            mergeInto, remoteName, maxRetryCount));
                     }
                 }
 
