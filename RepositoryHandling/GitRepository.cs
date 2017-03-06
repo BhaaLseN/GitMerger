@@ -161,6 +161,18 @@ namespace GitMerger.RepositoryHandling
 
             return true;
         }
+        // assumes same "RemoteName" for the branch (defaulting to "origin")
+        public bool PushDelete(string branchRef)
+        {
+            var pushDeleteResult = _git.Execute(LocalPath, "push --quiet --delete {0} {1}", RemoteName, branchRef);
+            if (pushDeleteResult.ExitCode != 0)
+            {
+                LogWarn(pushDeleteResult, $"Failed to delete '{branchRef}' from remote '{RemoteName}'");
+                return false;
+            }
+
+            return true;
+        }
 
         public string GetHashFor(string rev)
         {
@@ -178,6 +190,10 @@ namespace GitMerger.RepositoryHandling
         {
             Logger.Error(MakeMessage(executeResult, message));
         }
+        private void LogWarn(ExecuteResult executeResult, string message)
+        {
+            Logger.Warn(MakeMessage(executeResult, message));
+        }
         private void LogInfo(ExecuteResult executeResult, string message)
         {
             Logger.Info(MakeMessage(executeResult, message));
@@ -194,6 +210,13 @@ namespace GitMerger.RepositoryHandling
         public GitResult MakeFailureResult(string message)
         {
             return new GitResult(false, message)
+            {
+                ExecuteResult = _git.LastResult,
+            };
+        }
+        public GitResult MakeSuccessResultIncludingOutput(string message)
+        {
+            return new GitResult(true, message)
             {
                 ExecuteResult = _git.LastResult,
             };

@@ -166,22 +166,16 @@ namespace GitMerger.RepositoryHandling
                     }
                 }
 
-                var pushDeleteResult = _git.Execute(repository.LocalPath, "push --quiet --delete {0} {1}", remoteName, branchName);
-                if (pushDeleteResult.ExitCode != 0)
+                var pushDeleteResult = repository.PushDelete(branchName);
+                if (!pushDeleteResult)
                 {
-                    Logger.Warn(m => m("[{0}] Push-delete failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                        repository.RepositoryIdentifier, pushDeleteResult.ExitCode,
-                        string.Join(Environment.NewLine, pushDeleteResult.StdoutLines),
-                        string.Join(Environment.NewLine, pushDeleteResult.StderrLines)));
                     string message;
                     if (branchAlreadyMerged)
                         message = string.Format("Branch '{0}' was already merged, and deleting the remote branch '{1}/{0}' failed.", branchName, remoteName);
                     else
                         message = string.Format("Successfully merged '{0}' into '{1}', but deleting the remote branch '{2}/{0}' failed.", branchName, mergeInto, remoteName);
-                    return new GitResult(true, message)
-                    {
-                        ExecuteResult = pushDeleteResult,
-                    };
+
+                    return repository.MakeSuccessResultIncludingOutput(message);
                 }
 
                 if (branchAlreadyMerged)
