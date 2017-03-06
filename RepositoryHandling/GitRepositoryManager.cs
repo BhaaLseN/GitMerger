@@ -109,18 +109,8 @@ namespace GitMerger.RepositoryHandling
             // everything else will exit the loop and method at the same time with a return.
             while (true)
             {
-                var pullResult = _git.Execute(repository.LocalPath, "pull --quiet --ff --ff-only --no-stat {0} {1}", remoteName, mergeInto);
-                if (pullResult.ExitCode != 0)
-                {
-                    Logger.Error(m => m("[{0}] Pull failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                        repository.RepositoryIdentifier, pullResult.ExitCode,
-                        string.Join(Environment.NewLine, pullResult.StdoutLines),
-                        string.Join(Environment.NewLine, pullResult.StderrLines)));
-                    return new GitResult(false, "Failed to update '{0}' from '{1}' before merge.", mergeInto, remoteName)
-                    {
-                        ExecuteResult = pullResult,
-                    };
-                }
+                if (!repository.Pull(mergeInto))
+                    return repository.MakeFailureResult($"Failed to update '{mergeInto}' from '{remoteName}' before merge.");
 
                 var headBeforeMerge = _git.Execute(repository.LocalPath, "rev-parse HEAD");
                 if (headBeforeMerge.ExitCode != 0)

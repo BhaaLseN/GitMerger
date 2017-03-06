@@ -94,6 +94,19 @@ namespace GitMerger.RepositoryHandling
             return true;
         }
 
+        // assumes same "RemoteName" for the branch (defaulting to "origin")
+        public bool Pull(string remoteBranch)
+        {
+            var pullResult = _git.Execute(LocalPath, "pull --quiet --ff --ff-only --no-stat {0} {1}", RemoteName, remoteBranch);
+            if (pullResult.ExitCode != 0)
+            {
+                LogError(pullResult, $"Failed to pull '{RemoteName}/{remoteBranch}'");
+                return false;
+            }
+
+            return true;
+        }
+
         private void LogError(ExecuteResult executeResult, string message)
         {
             Logger.Error(m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",
