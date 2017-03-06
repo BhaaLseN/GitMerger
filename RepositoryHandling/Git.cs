@@ -12,6 +12,8 @@ namespace GitMerger.RepositoryHandling
 
         private readonly IGitSettings _gitSettings;
 
+        public ExecuteResult LastResult { get; private set; }
+
         public Git(IGitSettings gitSettings)
         {
             if (gitSettings == null)
@@ -75,10 +77,12 @@ namespace GitMerger.RepositoryHandling
                     p.Kill();
             }
 
-            return new ExecuteResult(p.ExitCode, stdout, stderr)
+            var result = new ExecuteResult(p.ExitCode, stdout, stderr)
             {
                 StartInfo = p.StartInfo,
             };
+            LastResult = result;
+            return result;
         }
     }
 }
