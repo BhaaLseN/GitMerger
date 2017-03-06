@@ -46,10 +46,7 @@ namespace GitMerger.RepositoryHandling
                 RepositoryIdentifier, LocalPath, _gitSettings.UserName, _gitSettings.EMail);
             if (cloneResult.ExitCode != 0)
             {
-                Logger.Error(m => m("[{0}] Clone failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                    RepositoryIdentifier, cloneResult.ExitCode,
-                    string.Join(Environment.NewLine, cloneResult.StdoutLines),
-                    string.Join(Environment.NewLine, cloneResult.StderrLines)));
+                LogError(cloneResult, $"Failed to clone repository '{RepositoryIdentifier}' into '{LocalPath}'");
                 return false;
             }
 
@@ -61,10 +58,7 @@ namespace GitMerger.RepositoryHandling
             var fetchResult = _git.Execute(LocalPath, "fetch --prune --quiet {0}", RemoteName);
             if (fetchResult.ExitCode != 0)
             {
-                Logger.Error(m => m("[{0}] Fetch failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                    RepositoryIdentifier, fetchResult.ExitCode,
-                    string.Join(Environment.NewLine, fetchResult.StdoutLines),
-                    string.Join(Environment.NewLine, fetchResult.StderrLines)));
+                LogError(fetchResult, $"Failed to fetch from remote '{RemoteName}'");
                 return false;
             }
 
@@ -76,10 +70,7 @@ namespace GitMerger.RepositoryHandling
             var branchResult = _git.Execute(LocalPath, "branch --remotes --list --quiet");
             if (branchResult.ExitCode != 0)
             {
-                Logger.Error(m => m("[{0}] Branch list failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                    RepositoryIdentifier, branchResult.ExitCode,
-                    string.Join(Environment.NewLine, branchResult.StdoutLines),
-                    string.Join(Environment.NewLine, branchResult.StderrLines)));
+                LogError(branchResult, "Failed to get list of branches");
                 return new string[0];
             }
             return branchResult.StdoutLines
@@ -89,6 +80,14 @@ namespace GitMerger.RepositoryHandling
                 .Select(l => l.Substring($"{RemoteName}/".Length))
                 .Where(l => !string.IsNullOrWhiteSpace(l))
                 .ToArray();
+        }
+
+        private void LogError(ExecuteResult executeResult, string message)
+        {
+            Logger.Error(m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",
+                RepositoryIdentifier, message, executeResult.ExitCode,
+                string.Join(Environment.NewLine, executeResult.StdoutLines),
+                string.Join(Environment.NewLine, executeResult.StderrLines)));
         }
     }
 }
