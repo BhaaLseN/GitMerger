@@ -150,8 +150,7 @@ namespace GitMerger.RepositoryHandling
                             Logger.Info(m => m("Failed to push the merge; retrying {0}/{1}", (maxRetryCount - retryCount), maxRetryCount));
 
                             // try to reset our target branch back; or we might run into issues when trying to re-do the merge
-                            var resetResult = _git.Execute(repository.LocalPath, "reset --hard --quiet {0}/{1}", remoteName, mergeInto);
-                            if (resetResult.ExitCode == 0)
+                            if (!repository.Reset(mergeInto))
                             {
                                 // add some wait time before retrying. the first retry will wait for 0 seconds (which effectively turns into a yield)
                                 // while all following retries wait for 5 seconds times the retry counter (so, 0s -> 5s -> 10s at most).

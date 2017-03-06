@@ -136,6 +136,18 @@ namespace GitMerger.RepositoryHandling
             return true;
         }
 
+        public bool Reset(string branch)
+        {
+            var resetResult = _git.Execute(LocalPath, "reset --hard --quiet {0}/{1}", RemoteName, branch);
+            if (resetResult.ExitCode != 0)
+            {
+                LogError(resetResult, $"Hard-resetting to '{RemoteName}/{branch}' failed");
+                return false;
+            }
+
+            return true;
+        }
+
         // assumes same "RemoteName" for the branch (defaulting to "origin")
         public bool Pull(string remoteBranch)
         {
