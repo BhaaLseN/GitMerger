@@ -107,6 +107,18 @@ namespace GitMerger.RepositoryHandling
             return true;
         }
 
+        public string GetHashFor(string rev)
+        {
+            var revParseResult = _git.Execute(LocalPath, "rev-parse {0}", rev);
+            if (revParseResult.ExitCode != 0)
+            {
+                LogError(revParseResult, $"Failed to get SHA1-hash for rev '{rev}'");
+                return null;
+            }
+
+            return revParseResult.StdoutLines.FirstOrDefault();
+        }
+
         private void LogError(ExecuteResult executeResult, string message)
         {
             Logger.Error(m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",

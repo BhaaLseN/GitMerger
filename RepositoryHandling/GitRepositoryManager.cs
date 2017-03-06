@@ -112,19 +112,9 @@ namespace GitMerger.RepositoryHandling
                 if (!repository.Pull(mergeInto))
                     return repository.MakeFailureResult($"Failed to update '{mergeInto}' from '{remoteName}' before merge.");
 
-                var headBeforeMerge = _git.Execute(repository.LocalPath, "rev-parse HEAD");
-                if (headBeforeMerge.ExitCode != 0)
-                {
-                    Logger.Error(m => m("[{0}] Pre-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
-                        repository.RepositoryIdentifier,
-                        string.Join(Environment.NewLine, headBeforeMerge.StdoutLines),
-                        string.Join(Environment.NewLine, headBeforeMerge.StderrLines)));
-                    return new GitResult(false, "Pre-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.")
-                    {
-                        ExecuteResult = headBeforeMerge,
-                    };
-                }
-                string oldHeadRev = headBeforeMerge.StdoutLines.FirstOrDefault();
+                string oldHeadRev = repository.GetHashFor("HEAD");
+                if (string.IsNullOrWhiteSpace(oldHeadRev))
+                    return repository.MakeFailureResult("Pre-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.");
 
                 var mergeResult = _git.Execute(repository.LocalPath, "merge --quiet --no-ff --no-stat {0}/{1}", remoteName, branchName);
                 if (mergeResult.ExitCode != 0)
@@ -141,21 +131,12 @@ namespace GitMerger.RepositoryHandling
                     };
                 }
 
-                var headAfterMerge = _git.Execute(repository.LocalPath, "rev-parse HEAD");
-                if (headAfterMerge.ExitCode != 0)
+                string newHeadRef = repository.GetHashFor("HEAD");
+                if (string.IsNullOrWhiteSpace(newHeadRef))
                 {
-                    Logger.Error(m => m("[{0}] Post-Merge: There doesn't seem to be a HEAD in this repository?\r\nstdout: {1}\r\nstderr: {2}",
-                        repository.RepositoryIdentifier,
-                        string.Join(Environment.NewLine, headAfterMerge.StdoutLines),
-                        string.Join(Environment.NewLine, headAfterMerge.StderrLines)));
-
                     _git.Execute(repository.LocalPath, "merge --abort");
-                    return new GitResult(false, "Post-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.")
-                    {
-                        ExecuteResult = headAfterMerge,
-                    };
+                    return repository.MakeFailureResult("Post-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.");
                 }
-                string newHeadRef = headAfterMerge.StdoutLines.FirstOrDefault();
 
                 bool branchAlreadyMerged = newHeadRef == oldHeadRev;
                 if (branchAlreadyMerged)
