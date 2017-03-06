@@ -228,10 +228,13 @@ namespace GitMerger.RepositoryHandling
         }
         public GitResult MakeSuccessResultIncludingOutput(string message)
         {
-            return new GitResult(true, message)
-            {
-                ExecuteResult = _git.LastResult,
-            };
+            var result = MakeSuccessResult(message);
+            result.ExecuteResult = _git.LastResult;
+            return result;
+        }
+        public GitResult MakeSuccessResult(string message)
+        {
+            return new GitResult(true, message);
         }
     }
 }

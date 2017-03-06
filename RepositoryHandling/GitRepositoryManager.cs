@@ -178,9 +178,13 @@ namespace GitMerger.RepositoryHandling
                 }
 
                 if (branchAlreadyMerged)
-                    return new GitResult(true, "Branch '{0}' was already merged, but we deleted the left-over remote branch '{1}/{0}' for you.", branchName, remoteName);
+                    return repository.MakeSuccessResult(string.Format(
+                        "Branch '{0}' was already merged, but we deleted the left-over remote branch '{1}/{0}' for you.",
+                        branchName, remoteName));
                 else
-                    return new GitResult(true, "Successfully merged '{0}' into '{1}' and deleted remote branch '{2}/{0}'.", branchName, mergeInto, remoteName);
+                    return repository.MakeSuccessResult(string.Format(
+                        "Successfully merged '{0}' into '{1}' and deleted remote branch '{2}/{0}'.",
+                        branchName, mergeInto, remoteName));
             }
         }
 
