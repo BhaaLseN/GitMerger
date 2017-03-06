@@ -91,9 +91,9 @@ namespace GitMerger.RepositoryHandling
                 Logger.Error(m => m("[{0}] Non-existing/initialized repository: Tried to merge branch '{1}' into '{2}'.",
                     repository.RepositoryIdentifier, branchName, mergeInto));
                 // TODO: maybe initialize anyways? Not supposed to happen, but meh.
-                return new GitResult(false,
+                return repository.MakeFailureResult(string.Format(
                     "Tried to perform a merge on a Non-existing/initialized repository '{0}' (merging '{1}' into '{2}')",
-                    repository.RepositoryIdentifier, branchName, mergeInto);
+                    repository.RepositoryIdentifier, branchName, mergeInto));
             }
 
             string remoteName = repository.RemoteName;

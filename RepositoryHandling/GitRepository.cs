@@ -89,5 +89,14 @@ namespace GitMerger.RepositoryHandling
                 string.Join(Environment.NewLine, executeResult.StdoutLines),
                 string.Join(Environment.NewLine, executeResult.StderrLines)));
         }
+
+        // TODO: this probably shouldn't be here?
+        public GitResult MakeFailureResult(string message)
+        {
+            return new GitResult(false, message)
+            {
+                ExecuteResult = _git.LastResult,
+            };
+        }
     }
 }
