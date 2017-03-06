@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public class ExecuteResult
     {
@@ -12,9 +12,10 @@ namespace GitMerger.Git
             StdoutLines = stdoutLines.ToArray();
             StderrLines = stderrLines.ToArray();
         }
+
         public ProcessStartInfo StartInfo { get; set; }
-        public int ExitCode { get; private set; }
-        public string[] StdoutLines { get; private set; }
-        public string[] StderrLines { get; private set; }
+        public int ExitCode { get; }
+        public string[] StdoutLines { get; }
+        public string[] StderrLines { get; }
     }
 }

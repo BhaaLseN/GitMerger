@@ -15,7 +15,7 @@ namespace GitMerger.Infrastructure
         public CastleDependencyResolver(IWindsorContainer container)
         {
             if (container == null)
-                throw new ArgumentNullException("container", "container is null.");
+                throw new ArgumentNullException(nameof(container), $"{nameof(container)} is null.");
             _container = container;
         }
         private CastleDependencyResolver(IWindsorContainer container, IDisposable scope)
@@ -46,8 +46,7 @@ namespace GitMerger.Infrastructure
 
         public void Dispose()
         {
-            if (_scope != null)
-                _scope.Dispose();
+            _scope?.Dispose();
         }
 
         #endregion

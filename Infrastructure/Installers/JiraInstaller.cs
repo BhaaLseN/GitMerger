@@ -1,7 +1,7 @@
 using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
-using GitMerger.Jira;
+using GitMerger.IssueTracking;
 
 namespace GitMerger.Infrastructure.Installers
 {

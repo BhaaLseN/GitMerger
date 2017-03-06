@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitMerger.Infrastructure.Settings;
-using GitMerger.Jira;
+using GitMerger.IssueTracking;
 
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     class GitMerger : IGitMerger
     {
@@ -27,6 +27,7 @@ namespace GitMerger.Git
             _jiraSettings = jiraSettings;
             Task.Run(() => HandleMergeRequests());
         }
+
         #region IGitMerger Members
 
         public void QueueRequest(MergeRequest mergeRequest)

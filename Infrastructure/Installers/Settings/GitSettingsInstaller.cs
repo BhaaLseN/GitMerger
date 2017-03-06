@@ -75,14 +75,14 @@ namespace GitMerger.Infrastructure.Installers.Settings
                 throw new NotImplementedException();
             }
 
-            public T Get<T>(IConfiguration configuration, string paramter)
+            public T Get<T>(IConfiguration configuration, string parameter)
             {
-                var setting = configuration.Children.SingleOrDefault(c => c.Name == paramter);
+                var setting = configuration.Children.SingleOrDefault(c => c.Name == parameter);
                 if (setting == null)
                 {
                     throw new ApplicationException(string.Format(
                         "In the castle configuration, type '{0}' expects parameter '{1}' that was missing.",
-                        typeof(T).Name, paramter));
+                        typeof(T).Name, parameter));
                 }
                 return (T)Context.Composition.PerformConversion(setting, typeof(T));
             }

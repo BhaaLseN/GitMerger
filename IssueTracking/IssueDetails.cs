@@ -6,31 +6,23 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace GitMerger.Jira
+namespace GitMerger.IssueTracking
 {
     public class IssueDetails
     {
-        private readonly string _key;
-        private readonly string _summary;
-
         public IssueDetails(string key, string summary)
         {
             if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key", "key is null or empty.");
+                throw new ArgumentNullException(nameof(key), $"{nameof(key)} is null or empty.");
             if (string.IsNullOrEmpty(summary))
-                throw new ArgumentNullException("summary", "summary is null or empty.");
+                throw new ArgumentNullException(nameof(summary), $"{nameof(summary)} is null or empty.");
 
-            _key = key;
-            _summary = summary;
+            Key = key;
+            Summary = summary;
         }
-        public string Key
-        {
-            get { return _key; }
-        }
-        public string Summary
-        {
-            get { return _summary; }
-        }
+
+        public string Key { get; }
+        public string Summary { get; }
         public bool IsTransition
         {
             get { return !string.IsNullOrWhiteSpace(TransitionId); }

@@ -1,5 +1,4 @@
-using System;
-namespace GitMerger.Git
+namespace GitMerger.RepositoryHandling
 {
     public class GitResult
     {
@@ -13,8 +12,8 @@ namespace GitMerger.Git
         {
         }
 
-        public string Message { get; private set; }
-        public bool Success { get; private set; }
+        public string Message { get; }
+        public bool Success { get; }
         public ExecuteResult ExecuteResult { get; set; }
     }
 }

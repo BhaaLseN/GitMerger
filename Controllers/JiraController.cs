@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using GitMerger.Git;
-using GitMerger.Jira;
+using GitMerger.IssueTracking;
+using GitMerger.RepositoryHandling;
 
 namespace GitMerger.Controllers
 {
