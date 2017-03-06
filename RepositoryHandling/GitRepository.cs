@@ -1,13 +1,14 @@
 using System;
 using System.IO;
 using System.Linq;
+using Common.Logging;
 using GitMerger.Infrastructure.Settings;
 
 namespace GitMerger.RepositoryHandling
 {
     public class GitRepository
     {
-        private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitRepository>();
+        private static readonly ILog Logger = LogManager.GetLogger<GitRepository>();
 
         private readonly IGitSettings _gitSettings;
         private readonly Git _git;
@@ -94,6 +95,33 @@ namespace GitMerger.RepositoryHandling
             return true;
         }
 
+        public bool Merge(string branch)
+        {
+            var mergeResult = _git.Execute(LocalPath, "merge --quiet --no-ff --no-stat {0}/{1}", RemoteName, branch);
+            if (mergeResult.ExitCode != 0)
+            {
+                LogError(mergeResult, $"Merge of '{branch}' failed");
+                return false;
+            }
+
+            return true;
+        }
+        public void MergeAbort()
+        {
+            var mergeAbortResult = _git.Execute(LocalPath, "merge --abort");
+            // write to the log in case something went wrong; but it's not like we could do anything about it...
+            if (mergeAbortResult.ExitCode != 0)
+            {
+                // git merge --abort returns 128 when no merge is in progress.
+                // lets hope thats the only case, otherwise we might hide important log entries on a lower level...
+                if (mergeAbortResult.ExitCode == 128)
+                    LogInfo(mergeAbortResult, "Merge abort failed, but it probably just wasn't in a merge");
+                else
+                    LogError(mergeAbortResult, "Merge abort failed");
+            }
+            // TODO: can anyone make sense of a return value here? do we need/want one?
+        }
+
         // assumes same "RemoteName" for the branch (defaulting to "origin")
         public bool Pull(string remoteBranch)
         {
@@ -121,10 +149,18 @@ namespace GitMerger.RepositoryHandling
 
         private void LogError(ExecuteResult executeResult, string message)
         {
-            Logger.Error(m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",
+            Logger.Error(MakeMessage(executeResult, message));
+        }
+        private void LogInfo(ExecuteResult executeResult, string message)
+        {
+            Logger.Info(MakeMessage(executeResult, message));
+        }
+        private Action<FormatMessageHandler> MakeMessage(ExecuteResult executeResult, string message)
+        {
+            return m => m("[{0}] {1} (Exit Code: {2})\r\nstdout: {3}\r\nstderr: {4}",
                 RepositoryIdentifier, message, executeResult.ExitCode,
                 string.Join(Environment.NewLine, executeResult.StdoutLines),
-                string.Join(Environment.NewLine, executeResult.StderrLines)));
+                string.Join(Environment.NewLine, executeResult.StderrLines));
         }
 
         // TODO: this probably shouldn't be here?

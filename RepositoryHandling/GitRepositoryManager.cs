@@ -116,25 +116,16 @@ namespace GitMerger.RepositoryHandling
                 if (string.IsNullOrWhiteSpace(oldHeadRev))
                     return repository.MakeFailureResult("Pre-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.");
 
-                var mergeResult = _git.Execute(repository.LocalPath, "merge --quiet --no-ff --no-stat {0}/{1}", remoteName, branchName);
-                if (mergeResult.ExitCode != 0)
+                if (!repository.Merge(branchName))
                 {
-                    Logger.Error(m => m("[{0}] Merge failed with exit code {1}\r\nstdout: {2}\r\nstderr: {3}",
-                        repository.RepositoryIdentifier, mergeResult.ExitCode,
-                        string.Join(Environment.NewLine, mergeResult.StdoutLines),
-                        string.Join(Environment.NewLine, mergeResult.StderrLines)));
-
-                    _git.Execute(repository.LocalPath, "merge --abort");
-                    return new GitResult(false, "Failed to merge '{0}' into '{1}'.", branchName, mergeInto)
-                    {
-                        ExecuteResult = mergeResult,
-                    };
+                    repository.MergeAbort();
+                    return repository.MakeFailureResult($"Failed to merge '{branchName}' into '{mergeInto}'.");
                 }
 
                 string newHeadRef = repository.GetHashFor("HEAD");
                 if (string.IsNullOrWhiteSpace(newHeadRef))
                 {
-                    _git.Execute(repository.LocalPath, "merge --abort");
+                    repository.MergeAbort();
                     return repository.MakeFailureResult("Post-Merge: Failed to retrieve current HEAD. This is probably a bad thing and needs to be fixed by a human.");
                 }
 
