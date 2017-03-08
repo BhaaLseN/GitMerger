@@ -21,5 +21,6 @@ namespace GitMerger.RepositoryHandling
     {
         Success,
         Failure,
+        Inconclusive,
     }
 }

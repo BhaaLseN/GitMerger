@@ -190,14 +190,15 @@ namespace GitMerger.RepositoryHandling
         {
             var sb = new StringBuilder();
 
-            int totalAttempts = mergeResults.Count();
-            int failedAttempts = mergeResults.Count(r => r.ResultType == GitResultType.Failure);
-            bool multipleRepositories = totalAttempts > 1;
+            int totalResults = mergeResults.Count();
+            int failedResults = mergeResults.Count(r => r.ResultType == GitResultType.Failure);
+            int inconclusiveResults = mergeResults.Count(r => r.ResultType == GitResultType.Inconclusive);
+            bool multipleRepositories = totalResults > 1;
 
             // show a small status indicator if everything worked, something went wrong or everything failed
-            if (failedAttempts == 0)
+            if (failedResults == 0 && inconclusiveResults == 0)
                 sb.Append("(/) ");
-            else if (totalAttempts == failedAttempts)
+            else if (totalResults == failedResults)
                 sb.Append("(x) ");
             else
                 sb.Append("(!) ");
@@ -207,22 +208,26 @@ namespace GitMerger.RepositoryHandling
             if (multipleRepositories)
             {
                 // for multiple repositories, include the merge count as summary
-                if (failedAttempts == 0)
-                    sb.AppendFormat("we successfully merged branches in {0} repositories for you.", totalAttempts);
+                if (failedResults != 0)
+                    sb.AppendFormat("we tried to merge branches in {0} repositories for you, but {1} of them failed.", totalResults, failedResults);
+                else if (inconclusiveResults != 0)
+                    sb.AppendFormat("we tried to merge branches in {0} repositories for you, but we weren't sure about {1} of them.", totalResults, inconclusiveResults);
                 else
-                    sb.AppendFormat("we tried to merge branches in {0} repositories for you, but {1} of them failed.", totalAttempts, failedAttempts);
+                    sb.AppendFormat("we successfully merged branches in {0} repositories for you.", totalResults);
             }
             else
             {
                 // for a single repository, just include the result
-                if (failedAttempts == 0)
-                    sb.Append("we successfully merged the branch for you.");
-                else
+                if (failedResults != 0)
                     sb.Append("we tried to merge the branch for you, but failed.");
+                else if (inconclusiveResults != 0)
+                    sb.Append("we tried to merge the branch for you, but weren't sure.");
+                else
+                    sb.Append("we successfully merged the branch for you.");
             }
 
             // notify the assignee that they might have some extra work to do (but only if something went wrong)
-            if (failedAttempts > 0)
+            if (failedResults + inconclusiveResults > 0)
                 sb.AppendLine()
                     .AppendFormat("Some steps might need to be performed by hand (by {0} for example).", MentionJiraUser(mergeRequest.IssueDetails.AssigneeUserKey));
 
@@ -291,6 +296,15 @@ namespace GitMerger.RepositoryHandling
                                 .Append("{noformat}");
 
                         break;
+
+                    case GitResultType.Inconclusive:
+                        // simple inconclusive message with status indicator icon.
+                        // should always have a message, otherwise its a bug...
+                        if (!string.IsNullOrEmpty(mergeResult.Result.Message))
+                            sb.AppendFormat("(!) {0}", mergeResult.Result.Message);
+                        else
+                            sb.AppendFormat("(!) Not sure what happened with {0}, the log file might help here...", mergeRequest.BranchName);
+                        break;
                 }
 
                 // empty line between repository notes and the end
@@ -350,7 +364,24 @@ namespace GitMerger.RepositoryHandling
             if (!branches.Any())
                 return results;
 
-            foreach (var branch in branches)
+            // we can potentially get multiple branches for the same repository here;
+            // lets see if we do. repositories with exactly one branch are mergeable,
+            // but those with multiple branches are mostly so we can notify someone.
+            var branchesByRepository = branches.ToLookup(b => b.Repository);
+            var branchesToMerge = branchesByRepository.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
+            var branchesToIgnore = branchesByRepository.Where(g => g.Count() > 1).ToArray();
+
+            foreach (var branchRepo in branchesToIgnore)
+            {
+                var repository = branchRepo.Key;
+                results.Add(new MergeResult(repository.MakeInconclusiveResult(
+                    string.Format(
+                        "Found {0} branches matching '{1}', cannot decide which one to merge: {2}",
+                        branchRepo.Count(), mergeRequest.BranchName, string.Join(", ", branchRepo))),
+                    branchRepo.First()));
+            }
+
+            foreach (var branch in branchesToMerge)
             {
                 var result = _repositoryManager.MergeAndPush(branch.Repository, branch.BranchName, mergeRequest.UpstreamBranch, mergeRequest.GetMergeAuthor());
                 results.Add(new MergeResult(result, branch));

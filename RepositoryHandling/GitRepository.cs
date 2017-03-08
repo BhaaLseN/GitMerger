@@ -236,5 +236,9 @@ namespace GitMerger.RepositoryHandling
         {
             return new GitResult(GitResultType.Success, message);
         }
+        public GitResult MakeInconclusiveResult(string message)
+        {
+            return new GitResult(GitResultType.Inconclusive, message);
+        }
     }
 }
