@@ -191,7 +191,7 @@ namespace GitMerger.RepositoryHandling
             var sb = new StringBuilder();
 
             int totalAttempts = mergeResults.Count();
-            int failedAttempts = mergeResults.Count(r => !r.Success);
+            int failedAttempts = mergeResults.Count(r => r.ResultType == GitResultType.Failure);
             bool multipleRepositories = totalAttempts > 1;
 
             // show a small status indicator if everything worked, something went wrong or everything failed
@@ -240,54 +240,57 @@ namespace GitMerger.RepositoryHandling
                     sb.AppendFormat("*Repository {0}*: ", EscapeJiraString(mergeResult.Branch.Repository.RepositoryIdentifier));
                 }
 
-                if (mergeResult.Success)
+                switch (mergeResult.ResultType)
                 {
-                    // simple success message with status indicator icon
-                    if (!string.IsNullOrEmpty(mergeResult.Result.Message))
-                        sb.AppendFormat("(/) {0}", mergeResult.Result.Message);
-                    else
-                        sb.AppendFormat("(/) Branch {0} successfully merged into {1}.", mergeResult.Branch.BranchName, mergeRequest.UpstreamBranch);
-                    // TODO: maybe include revert instructions?
-                }
-                else
-                {
-                    // failure message with status indicator icon...
-                    sb.AppendFormat("(x) Automatic merge failed: {0}", mergeResult.Result.Message).AppendLine();
-                    // ...followed by a brief hint on what might be necessary to merge this branch by hand...
-                    sb.AppendLine("This usually means that you need to merge this branch by hand using the following commands (for example, command line only):");
-                    sb.Append("{noformat:title=Merge Instructions (command line)}");
-                    sb.AppendFormat("git checkout {0}", mergeRequest.UpstreamBranch).AppendLine();
-                    sb.AppendFormat("git merge --no-ff {0}", mergeResult.Branch.BranchName).AppendLine();
-                    sb.Append("- resolve merge conflicts here, if necessary -").AppendLine();
-                    sb.AppendFormat("git push origin {0} :{1}", mergeRequest.UpstreamBranch, mergeResult.Branch.BranchName).AppendLine();
-                    sb.Append("{noformat}");
+                    case GitResultType.Success:
+                        // simple success message with status indicator icon
+                        if (!string.IsNullOrEmpty(mergeResult.Result.Message))
+                            sb.AppendFormat("(/) {0}", mergeResult.Result.Message);
+                        else
+                            sb.AppendFormat("(/) Branch {0} successfully merged into {1}.", mergeResult.Branch.BranchName, mergeRequest.UpstreamBranch);
+                        // TODO: maybe include revert instructions?
+                        break;
 
-                    // ...followed by command line/stdout/stderr
-                    string commandLine = string.Format("\"{0}\" {1}",
-                        mergeResult.Result.ExecuteResult.StartInfo.FileName.Trim('"', '\''),
-                        mergeResult.Result.ExecuteResult.StartInfo.Arguments ?? string.Empty);
-                    string stdout = string.Join("\r\n", mergeResult.Result.ExecuteResult.StdoutLines);
-                    string stderr = string.Join("\r\n", mergeResult.Result.ExecuteResult.StderrLines);
+                    case GitResultType.Failure:
+                        // failure message with status indicator icon...
+                        sb.AppendFormat("(x) Automatic merge failed: {0}", mergeResult.Result.Message).AppendLine();
+                        // ...followed by a brief hint on what might be necessary to merge this branch by hand...
+                        sb.AppendLine("This usually means that you need to merge this branch by hand using the following commands (for example, command line only):");
+                        sb.Append("{noformat:title=Merge Instructions (command line)}");
+                        sb.AppendFormat("git checkout {0}", mergeRequest.UpstreamBranch).AppendLine();
+                        sb.AppendFormat("git merge --no-ff {0}", mergeResult.Branch.BranchName).AppendLine();
+                        sb.Append("- resolve merge conflicts here, if necessary -").AppendLine();
+                        sb.AppendFormat("git push origin {0} :{1}", mergeRequest.UpstreamBranch, mergeResult.Branch.BranchName).AppendLine();
+                        sb.Append("{noformat}");
 
-                    if (!string.IsNullOrWhiteSpace(stdout) || !string.IsNullOrWhiteSpace(stderr) || !string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
-                        sb.AppendLine()
-                            .Append("Further information and process outputs that may help you:");
+                        // ...followed by command line/stdout/stderr
+                        string commandLine = string.Format("\"{0}\" {1}",
+                            mergeResult.Result.ExecuteResult.StartInfo.FileName.Trim('"', '\''),
+                            mergeResult.Result.ExecuteResult.StartInfo.Arguments ?? string.Empty);
+                        string stdout = string.Join("\r\n", mergeResult.Result.ExecuteResult.StdoutLines);
+                        string stderr = string.Join("\r\n", mergeResult.Result.ExecuteResult.StderrLines);
 
-                    if (!string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
-                        sb.AppendLine()
-                            .Append("{noformat:title=Command Line}")
-                            .Append(commandLine)
-                            .Append("{noformat}");
-                    if (!string.IsNullOrWhiteSpace(stdout))
-                        sb.AppendLine()
-                            .Append("{noformat:title=Standard Output}")
-                            .Append(stdout)
-                            .Append("{noformat}");
-                    if (!string.IsNullOrWhiteSpace(stderr))
-                        sb.AppendLine()
-                            .Append("{noformat:title=Standard Error}")
-                            .Append(stderr)
-                            .Append("{noformat}");
+                        if (!string.IsNullOrWhiteSpace(stdout) || !string.IsNullOrWhiteSpace(stderr) || !string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
+                            sb.AppendLine()
+                                .Append("Further information and process outputs that may help you:");
+
+                        if (!string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
+                            sb.AppendLine()
+                                .Append("{noformat:title=Command Line}")
+                                .Append(commandLine)
+                                .Append("{noformat}");
+                        if (!string.IsNullOrWhiteSpace(stdout))
+                            sb.AppendLine()
+                                .Append("{noformat:title=Standard Output}")
+                                .Append(stdout)
+                                .Append("{noformat}");
+                        if (!string.IsNullOrWhiteSpace(stderr))
+                            sb.AppendLine()
+                                .Append("{noformat:title=Standard Error}")
+                                .Append(stderr)
+                                .Append("{noformat}");
+
+                        break;
                 }
 
                 // empty line between repository notes and the end
