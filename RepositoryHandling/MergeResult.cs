@@ -15,9 +15,9 @@ namespace GitMerger.RepositoryHandling
             Branch = branch;
         }
 
-        public bool Success
+        public GitResultType ResultType
         {
-            get { return Result.Success; }
+            get { return Result.ResultType; }
         }
 
         public GitResult Result { get; }

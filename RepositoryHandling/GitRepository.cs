@@ -221,7 +221,7 @@ namespace GitMerger.RepositoryHandling
         // TODO: this probably shouldn't be here?
         public GitResult MakeFailureResult(string message)
         {
-            return new GitResult(false, message)
+            return new GitResult(GitResultType.Failure, message)
             {
                 ExecuteResult = _git.LastResult,
             };
@@ -234,7 +234,11 @@ namespace GitMerger.RepositoryHandling
         }
         public GitResult MakeSuccessResult(string message)
         {
-            return new GitResult(true, message);
+            return new GitResult(GitResultType.Success, message);
+        }
+        public GitResult MakeInconclusiveResult(string message)
+        {
+            return new GitResult(GitResultType.Inconclusive, message);
         }
     }
 }

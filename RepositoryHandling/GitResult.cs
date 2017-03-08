@@ -2,18 +2,25 @@ namespace GitMerger.RepositoryHandling
 {
     public class GitResult
     {
-        public GitResult(bool success, string message)
+        public GitResult(GitResultType resultType, string message)
         {
-            Success = success;
+            ResultType = resultType;
             Message = message;
         }
-        public GitResult(bool success, string messageFormat, params object[] arguments)
-            : this(success, string.Format(messageFormat, arguments))
+        public GitResult(GitResultType resultType, string messageFormat, params object[] arguments)
+            : this(resultType, string.Format(messageFormat, arguments))
         {
         }
 
         public string Message { get; }
-        public bool Success { get; }
+        public GitResultType ResultType { get; }
         public ExecuteResult ExecuteResult { get; set; }
+    }
+
+    public enum GitResultType
+    {
+        Success,
+        Failure,
+        Inconclusive,
     }
 }

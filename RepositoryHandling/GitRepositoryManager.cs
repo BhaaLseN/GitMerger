@@ -77,7 +77,8 @@ namespace GitMerger.RepositoryHandling
                     {
                         Logger.Warn(m => m("Found {0} branches matching '{1}' in repository '{2}', cannot decide which one they wanted: {3}",
                             matchingBranches.Count(), branchName, repository.RepositoryIdentifier, string.Join(", ", matchingBranches)));
-                        // TODO: implement notification in case multiple branches are found
+                        foreach (string matchingBranchName in matchingBranches)
+                            yield return new GitRepositoryBranch(repository, matchingBranchName);
                     }
                 }
             }
