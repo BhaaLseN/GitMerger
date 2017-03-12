@@ -23,6 +23,13 @@ namespace GitMerger.RepositoryHandling
 
         #region IGitRepositoryManager Members
 
+        private bool IsEligibleBranchForMerging(string branchName)
+        {
+            if (string.IsNullOrWhiteSpace(_gitSettings.IgnoredBranchPattern))
+                return true;
+
+            return !Regex.IsMatch(branchName, _gitSettings.IgnoredBranchPattern);
+        }
         public IEnumerable<GitRepositoryBranch> FindBranch(string branchName, bool isExactBranchName)
         {
             Logger.Debug(m => m("Trying to find matching repositories for '{0}' (exact match: {1})", branchName, isExactBranchName));
@@ -46,6 +53,9 @@ namespace GitMerger.RepositoryHandling
                 Logger.Debug(m => m("Found {0} branches: {1}", branches.Length, string.Join(", ", branches)));
                 if (isExactBranchName)
                 {
+                    // assume an exact branch match is always intentional, and must never be ignored.
+                    // might happen that a review/testing/whatever branch supersedes the real one,
+                    // and the lazy developer simply inputs their branch name as source.
                     if (branches.Contains(branchName))
                     {
                         Logger.Info(m => m("Got an exact branch name match for '{0}' in '{1}'.",
@@ -67,18 +77,23 @@ namespace GitMerger.RepositoryHandling
                     //        (and therefore don't need to check for it right now)
                     var jiraIssueKey = new Regex(branchName + @"(?!\d)", RegexOptions.IgnoreCase);
                     var matchingBranches = branches.Where(branch => jiraIssueKey.IsMatch(branch));
-                    if (matchingBranches.Count() == 1)
+                    var nonIgnoredBranches = matchingBranches.Where(IsEligibleBranchForMerging).ToArray();
+                    var ignoredBranches = matchingBranches.Except(nonIgnoredBranches).Select(b => $"{b} (ignored)").ToArray();
+                    if (nonIgnoredBranches.Count() == 1)
                     {
                         Logger.Info(m => m("Found a branch name match for '{0}' (exact spelling is '{1}') in '{2}'.",
                             branchName, matchingBranches.First(), repository.RepositoryIdentifier));
                         yield return new GitRepositoryBranch(repository, matchingBranches.First());
                     }
-                    else if (matchingBranches.Count() > 1)
+                    else if (nonIgnoredBranches.Count() + ignoredBranches.Count() > 0)
                     {
+                        var branchesToLog = nonIgnoredBranches.Concat(ignoredBranches);
                         Logger.Warn(m => m("Found {0} branches matching '{1}' in repository '{2}', cannot decide which one they wanted: {3}",
-                            matchingBranches.Count(), branchName, repository.RepositoryIdentifier, string.Join(", ", matchingBranches)));
-                        foreach (string matchingBranchName in matchingBranches)
+                            matchingBranches.Count(), branchName, repository.RepositoryIdentifier, string.Join(", ", branchesToLog)));
+                        foreach (string matchingBranchName in nonIgnoredBranches)
                             yield return new GitRepositoryBranch(repository, matchingBranchName);
+                        foreach (string matchingBranchName in ignoredBranches)
+                            yield return new GitRepositoryBranch(repository, matchingBranchName) { IsIgnored = true };
                     }
                 }
             }

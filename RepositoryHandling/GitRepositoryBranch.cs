@@ -17,5 +17,6 @@ namespace GitMerger.RepositoryHandling
 
         public GitRepository Repository { get; }
         public string BranchName { get; }
+        public bool IsIgnored { get; set; }
     }
 }
