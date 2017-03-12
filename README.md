@@ -50,6 +50,7 @@ Configuration is mostly confined to App.config, which uses a trick to let Castle
 * ```MergeDelay``` is a TimeSpan value used to delay the actual merge. Sometimes, users might accidentally close an issue and reopen it again right away. If this happens, no merge should occur unless the Jira issue is still eligible for a merge.
 * ```RepositoryBasePath``` is the full folder path to a location where GitMerger will put the cloned repositories. Make sure this is on a disk with sufficiant space available.
 * ```Repositories``` is an array of repository uris which will be probed for a branch with the same name as the Jira issue key. At the moment, no issue key to repository mapping exists (as the same issue key might affect multiple repositories); and all repositories are always checked for all merges.
+* `IgnoredBranchPattern` is a .NET regular expression to ignore given branches. This is most useful to specify namespaces such as `private/` or `testing/` to be left alone when the issue key matches. Ignored when an exact branch name was specified by `BranchFieldName`.
 
 ## Jira WebHook Setup
 1. Log into the Jira Administration Interface as Jira Administrator.
