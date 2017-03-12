@@ -98,6 +98,7 @@ namespace GitMerger.Infrastructure.Installers.Settings
                 RepositoryBasePath = Path.Combine(Path.GetDirectoryName(typeof(GitSettings).Assembly.Location), "repositories");
                 Repositories = new RepositoryInfo[0];
                 MergeDelay = TimeSpan.FromMinutes(5);
+                IgnoredBranchPattern = @"^private/|^review/|^test(?:ing)?/";
             }
 
             #region IGitSettings Members
@@ -108,6 +109,7 @@ namespace GitMerger.Infrastructure.Installers.Settings
             public TimeSpan MergeDelay { get; set; }
             public string RepositoryBasePath { get; set; }
             public RepositoryInfo[] Repositories { get; set; }
+            public string IgnoredBranchPattern { get; set; }
 
             #endregion
 

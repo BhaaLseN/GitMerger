@@ -10,5 +10,6 @@ namespace GitMerger.Infrastructure.Settings
         TimeSpan MergeDelay { get; }
         string RepositoryBasePath { get; }
         RepositoryInfo[] Repositories { get; }
+        string IgnoredBranchPattern { get; }
     }
 }

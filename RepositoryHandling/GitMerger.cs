@@ -368,17 +368,23 @@ namespace GitMerger.RepositoryHandling
             // lets see if we do. repositories with exactly one branch are mergeable,
             // but those with multiple branches are mostly so we can notify someone.
             var branchesByRepository = branches.ToLookup(b => b.Repository);
-            var branchesToMerge = branchesByRepository.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
-            var branchesToIgnore = branchesByRepository.Where(g => g.Count() > 1).ToArray();
+            var branchesToMerge = branchesByRepository.Where(g => g.Count(b => !b.IsIgnored) == 1).Select(g => g.First(b => !b.IsIgnored)).ToArray();
+            var branchesToIgnore = branchesByRepository.Where(g => g.Count(b => !b.IsIgnored) != 1).ToArray();
 
             foreach (var branchRepo in branchesToIgnore)
             {
                 var repository = branchRepo.Key;
-                results.Add(new MergeResult(repository.MakeInconclusiveResult(
-                    string.Format(
+                string message;
+                if (branchRepo.All(b => b.IsIgnored))
+                    message = string.Format(
+                        "Found only branches which were ignored for the merge: {0}\r\n" +
+                        "Using an explicit branch name in the future allows such a merge to proceed.",
+                        string.Join(", ", branchRepo));
+                else
+                    message = string.Format(
                         "Found {0} branches matching '{1}', cannot decide which one to merge: {2}",
-                        branchRepo.Count(), mergeRequest.BranchName, string.Join(", ", branchRepo))),
-                    branchRepo.First()));
+                        branchRepo.Count(), mergeRequest.BranchName, string.Join(", ", branchRepo));
+                results.Add(new MergeResult(repository.MakeInconclusiveResult(message), branchRepo.First()));
             }
 
             foreach (var branch in branchesToMerge)
