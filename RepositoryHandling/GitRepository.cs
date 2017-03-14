@@ -108,7 +108,8 @@ namespace GitMerger.RepositoryHandling
         }
         public void MergeAbort()
         {
-            var mergeAbortResult = _git.Execute(LocalPath, "merge --abort");
+            // run stealthily; otherwise we might clobber an execution result (from a previous merge for example).
+            var mergeAbortResult = _git.ExecuteSilent(LocalPath, "merge --abort");
             // write to the log in case something went wrong; but it's not like we could do anything about it...
             if (mergeAbortResult.ExitCode != 0)
             {

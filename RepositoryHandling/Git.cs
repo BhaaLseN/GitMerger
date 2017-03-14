@@ -21,7 +21,20 @@ namespace GitMerger.RepositoryHandling
             _gitSettings = gitSettings;
         }
 
+        /// <summary>
+        /// Executes the given command and stores the result as <see cref="LastResult"/>
+        /// </summary>
         public ExecuteResult Execute(string workingDirectory, string format, params object[] args)
+        {
+            var result = ExecuteSilent(workingDirectory, format, args);
+            LastResult = result;
+            return result;
+        }
+
+        /// <summary>
+        /// Executes the given command without storing the result as <see cref="LastResult"/>
+        /// </summary>
+        public ExecuteResult ExecuteSilent(string workingDirectory, string format, params object[] args)
         {
             string arguments = string.Format(format, args);
             var p = new Process
@@ -77,12 +90,10 @@ namespace GitMerger.RepositoryHandling
                     p.Kill();
             }
 
-            var result = new ExecuteResult(p.ExitCode, stdout, stderr)
+            return new ExecuteResult(p.ExitCode, stdout, stderr)
             {
                 StartInfo = p.StartInfo,
             };
-            LastResult = result;
-            return result;
         }
     }
 }
