@@ -58,6 +58,11 @@ namespace GitMerger.RepositoryHandling
                         Logger.Warn(m => m("Jira didn't return any issue information while trying to check if we should still merge '{0}'; not doing a merge.", mergeRequest.IssueDetails.Key));
                         shouldMerge = false;
                     }
+                    else if (!_jiraSettings.ClosedStatus.Contains(issueDetails.Status))
+                    {
+                        Logger.Info(m => m("Related Jira issue is NOT closed; not doing a merge."));
+                        shouldMerge = false;
+                    }
                     else
                     {
                         shouldMerge = !ShouldPreventAutomerge(issueDetails);
