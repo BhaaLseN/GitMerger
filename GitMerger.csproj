@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\JiraCommentController.cs" />
     <Compile Include="Controllers\JiraController.cs" />
     <Compile Include="JsonHelper.cs" />
     <Compile Include="RepositoryHandling\ExecuteResult.cs" />

@@ -1,4 +1,6 @@
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
@@ -33,6 +35,17 @@ namespace GitMerger
             catch
             {
                 return null;
+            }
+        }
+
+        public static string SerializeObject<T>(T value)
+        {
+            var jsonFormatter = new JsonMediaTypeFormatter();
+            using (var ms = new MemoryStream())
+            {
+                jsonFormatter.WriteToStream(typeof(T), value, ms, Encoding.UTF8);
+                ms.Position = 0;
+                return Encoding.UTF8.GetString(ms.ToArray());
             }
         }
     }
