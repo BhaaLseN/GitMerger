@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml.Linq;
 using GitMerger.Infrastructure.Settings;
@@ -78,8 +77,7 @@ namespace GitMerger.IssueTracking
                         new XElement("body",
                             new XAttribute("type", "string"),
                             comment)));
-                    using (var writer = JsonReaderWriterFactory.CreateJsonWriter(requestStream))
-                        postContent.Save(writer);
+                    JsonHelper.SerializeTo(postContent, requestStream);
                 }
                 var response = request.GetResponse();
                 using (var streamReader = new StreamReader(response.GetResponseStream()))
