@@ -87,6 +87,15 @@ A potential improvement to this feature would be to check for Epic Links, Parent
 ### Changing the default branch name from the issue key to something else
 Use the same setup as for the Upstream Branch Name, except with different Name/Description of course :)
 
+## Other Features:
+* `POST` to `/jiracomment` with some JSON to add a comment to the given Issue:
+```json
+{
+    "key": "JRA-1234",
+    "comment": "This comment is added to JRA-1234"
+}
+```
+
 ## Infrastructure and Technology
 GitMerger uses the following components, mostly pulled from NuGet due to convinience reasons:
 * [ASP.Net WebApi](http://www.asp.net/web-api) and [OWIN](http://www.asp.net/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api) to self-host a simple HTTP service that can receive HTTP POST callbacks (such as the Jira WebHooks).
