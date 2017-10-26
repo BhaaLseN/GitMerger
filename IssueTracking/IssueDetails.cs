@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace GitMerger.IssueTracking
 {
@@ -39,19 +35,9 @@ namespace GitMerger.IssueTracking
         public string Status { get; set; }
         public ILookup<string, string> CustomFields { get; set; }
 
-        private static readonly XmlDictionaryReaderQuotas InfiniteQuotas = new XmlDictionaryReaderQuotas
-        {
-            MaxArrayLength = int.MaxValue,
-            MaxBytesPerRead = int.MaxValue,
-            MaxDepth = int.MaxValue,
-            MaxNameTableCharCount = int.MaxValue,
-            MaxStringContentLength = int.MaxValue
-        };
-
         public static IssueDetails ParseFromJson(string jsonString)
         {
-            var reader = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(jsonString), InfiniteQuotas);
-            var doc = XDocument.Load(reader);
+            var doc = JsonHelper.DeserializeFrom(jsonString);
 
             // user information will only be available when a transition is triggered; so lets call it "transition" values
             string transitionUserKey = doc.Root.ElementValue("user", "key");
