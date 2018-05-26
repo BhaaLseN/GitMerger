@@ -381,14 +381,18 @@ namespace GitMerger.RepositoryHandling
                 var repository = branchRepo.Key;
                 string message;
                 if (branchRepo.All(b => b.IsIgnored))
+                {
                     message = string.Format(
                         "Found only branches which were ignored for the merge: {0}\r\n" +
                         "Using an explicit branch name in the future allows such a merge to proceed.",
-                        string.Join(", ", branchRepo));
+                        string.Join(", ", branchRepo.Select(b => b.BranchName)));
+                }
                 else
+                {
                     message = string.Format(
                         "Found {0} branches matching '{1}', cannot decide which one to merge: {2}",
-                        branchRepo.Count(), mergeRequest.BranchName, string.Join(", ", branchRepo));
+                        branchRepo.Count(), mergeRequest.BranchName, string.Join(", ", branchRepo.Select(b => b.BranchName)));
+                }
                 results.Add(new MergeResult(repository.MakeInconclusiveResult(message), branchRepo.First()));
             }
 
