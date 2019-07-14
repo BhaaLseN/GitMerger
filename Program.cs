@@ -1,16 +1,17 @@
-﻿using System;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GitMerger
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            string baseAddress = Startup.Start();
-            Console.WriteLine("Listening at {0}", baseAddress);
-            Console.WriteLine("Return to close");
-            Console.ReadLine();
-            Startup.Shutdown();
+            CreateWebHostBuilder(args).Build().Run();
         }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>();
     }
 }

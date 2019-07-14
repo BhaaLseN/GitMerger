@@ -16,7 +16,7 @@ namespace GitMerger
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element), $"{nameof(element)} is null.");
-            foreach (XName name in names)
+            foreach (var name in names)
             {
                 element = element.Element(name);
                 if (element == null)

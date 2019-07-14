@@ -9,7 +9,7 @@ using GitMerger.IssueTracking;
 
 namespace GitMerger.RepositoryHandling
 {
-    class GitMerger : IGitMerger
+    internal class GitMerger : IGitMerger
     {
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitMerger>();
 
@@ -233,8 +233,10 @@ namespace GitMerger.RepositoryHandling
 
             // notify the assignee that they might have some extra work to do (but only if something went wrong)
             if (failedResults + inconclusiveResults > 0)
+            {
                 sb.AppendLine()
                     .AppendFormat("Some steps might need to be performed by hand (by {0} for example).", MentionJiraUser(mergeRequest.IssueDetails.AssigneeUserKey));
+            }
 
             // empty line between the summary and the repository notes
             sb.AppendLine().AppendLine();
@@ -281,24 +283,34 @@ namespace GitMerger.RepositoryHandling
                         string stderr = string.Join("\r\n", mergeResult.Result.ExecuteResult.StderrLines);
 
                         if (!string.IsNullOrWhiteSpace(stdout) || !string.IsNullOrWhiteSpace(stderr) || !string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
+                        {
                             sb.AppendLine()
                                 .Append("Further information and process outputs that may help you:");
+                        }
 
                         if (!string.IsNullOrWhiteSpace(commandLine.Trim(' ', '"')))
+                        {
                             sb.AppendLine()
                                 .Append("{noformat:title=Command Line}")
                                 .Append(commandLine)
                                 .Append("{noformat}");
+                        }
+
                         if (!string.IsNullOrWhiteSpace(stdout))
+                        {
                             sb.AppendLine()
                                 .Append("{noformat:title=Standard Output}")
                                 .Append(stdout)
                                 .Append("{noformat}");
+                        }
+
                         if (!string.IsNullOrWhiteSpace(stderr))
+                        {
                             sb.AppendLine()
                                 .Append("{noformat:title=Standard Error}")
                                 .Append(stderr)
                                 .Append("{noformat}");
+                        }
 
                         break;
 

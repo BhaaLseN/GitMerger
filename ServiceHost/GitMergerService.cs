@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.ServiceProcess;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GitMerger
 {
-    partial class GitMergerService : ServiceBase
+    internal partial class GitMergerService : ServiceBase
     {
+        private IWebHost _webHost;
+
         public GitMergerService()
         {
             InitializeComponent();
@@ -14,13 +18,18 @@ namespace GitMerger
 
         protected override void OnStart(string[] args)
         {
-            string baseAddress = Startup.Start();
+            var webHostBuilder = CreateWebHostBuilder(args);
+            _webHost = webHostBuilder.Build();
+            _webHost.Start();
+
+            //string baseAddress = webHostBuilder.GetSetting(WebHostDefaults.ServerUrlsKey);
+            string baseAddress = "an address that ASP.NET Core won't tell me (accurately)";
             WriteEventLog(EventLogEntryType.Information, "Listening at {0}", baseAddress);
         }
 
         protected override void OnStop()
         {
-            Startup.Shutdown();
+            _webHost?.StopAsync(TimeSpan.FromSeconds(30)).GetAwaiter().GetResult();
         }
         private void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -29,9 +38,13 @@ namespace GitMerger
 
             if (e.IsTerminating)
             {
-                Startup.Shutdown();
+                _webHost?.StopAsync(TimeSpan.FromSeconds(30)).GetAwaiter().GetResult();
             }
         }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>();
 
         private const int MaxEventLogMessageLength = 32765;
         private void WriteEventLog(EventLogEntryType entryType, string message, params object[] args)

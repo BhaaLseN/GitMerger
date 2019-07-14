@@ -1,12 +1,15 @@
-using System.Net.Http;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
-using System.Web.Http;
 using GitMerger.IssueTracking;
 using GitMerger.RepositoryHandling;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GitMerger.Controllers
 {
-    public class JiraController : ApiController
+    [Route("merger/[controller]")]
+    [ApiController]
+    public class JiraController : ControllerBase
     {
         private readonly IGitMerger _gitMerger;
 
@@ -15,6 +18,7 @@ namespace GitMerger.Controllers
             _gitMerger = gitMerger;
         }
 
+        [HttpGet]
         public string Get()
         {
             return "nuuuuh";
@@ -25,9 +29,10 @@ namespace GitMerger.Controllers
         // Eric Lippert explains this in http://stackoverflow.com/a/8043882 (basically: nothing can "await" an "async void"
         // method, but that in turn doesn't allow the framework to know when to properly free/dispose/recycle/whatever the stuff
         // passed in. in short: use "async Task" even if you won't return anything :S)
-        public async Task Post(HttpRequestMessage request)
+        public async Task Post()
         {
-            Post(await request.Content.ReadAsStringAsync());
+            using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+                Post(await reader.ReadToEndAsync());
         }
         private void Post(string json)
         {

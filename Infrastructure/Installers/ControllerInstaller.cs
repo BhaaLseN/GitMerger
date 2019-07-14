@@ -19,7 +19,7 @@ namespace GitMerger.Infrastructure.Installers
 
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
-            container.Register(Classes.FromThisAssembly()
+            container.Register(Classes.FromAssemblyContaining<ControllerInstaller>()
                 .BasedOn<ApiController>()
                 // scope is based on IDependencyResolver.BeginScope, which seems to be per request
                 .LifestyleScoped());

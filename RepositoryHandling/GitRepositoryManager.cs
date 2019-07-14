@@ -8,7 +8,7 @@ using GitMerger.Infrastructure.Settings;
 
 namespace GitMerger.RepositoryHandling
 {
-    class GitRepositoryManager : IGitRepositoryManager
+    internal class GitRepositoryManager : IGitRepositoryManager
     {
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<GitRepositoryManager>();
 
@@ -77,8 +77,8 @@ namespace GitMerger.RepositoryHandling
                     //        (and therefore don't need to check for it right now)
                     var jiraIssueKey = new Regex(branchName + @"(?!\d)", RegexOptions.IgnoreCase);
                     var matchingBranches = branches.Where(branch => jiraIssueKey.IsMatch(branch));
-                    var nonIgnoredBranches = matchingBranches.Where(IsEligibleBranchForMerging).ToArray();
-                    var ignoredBranches = matchingBranches.Except(nonIgnoredBranches).Select(b => $"{b} (ignored)").ToArray();
+                    string[] nonIgnoredBranches = matchingBranches.Where(IsEligibleBranchForMerging).ToArray();
+                    string[] ignoredBranches = matchingBranches.Except(nonIgnoredBranches).Select(b => $"{b} (ignored)").ToArray();
                     if (nonIgnoredBranches.Count() == 1)
                     {
                         Logger.Info(m => m("Found a branch name match for '{0}' (exact spelling is '{1}') in '{2}'.",
@@ -181,7 +181,7 @@ namespace GitMerger.RepositoryHandling
                     }
                 }
 
-                var pushDeleteResult = repository.PushDelete(branchName);
+                bool pushDeleteResult = repository.PushDelete(branchName);
                 if (!pushDeleteResult)
                 {
                     string message;
@@ -194,13 +194,17 @@ namespace GitMerger.RepositoryHandling
                 }
 
                 if (branchAlreadyMerged)
+                {
                     return repository.MakeSuccessResult(string.Format(
                         "Branch '{0}' was already merged, but we deleted the left-over remote branch '{1}/{0}' for you.",
                         branchName, remoteName));
+                }
                 else
+                {
                     return repository.MakeSuccessResult(string.Format(
                         "Successfully merged '{0}' into '{1}' and deleted remote branch '{2}/{0}'.",
                         branchName, mergeInto, remoteName));
+                }
             }
         }
 

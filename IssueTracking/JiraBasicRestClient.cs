@@ -7,7 +7,7 @@ using GitMerger.Infrastructure.Settings;
 
 namespace GitMerger.IssueTracking
 {
-    class JiraBasicRestClient : IJira
+    internal class JiraBasicRestClient : IJira
     {
         private static readonly global::Common.Logging.ILog Logger = global::Common.Logging.LogManager.GetLogger<JiraBasicRestClient>();
 

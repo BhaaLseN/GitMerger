@@ -1,10 +1,12 @@
 using System.Runtime.Serialization;
-using System.Web.Http;
 using GitMerger.IssueTracking;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GitMerger.Controllers
 {
-    public class JiraCommentController : ApiController
+    [Route("merger/[controller]")]
+    [ApiController]
+    public class JiraCommentController : ControllerBase
     {
         private readonly IJira _jira;
 
@@ -19,7 +21,7 @@ namespace GitMerger.Controllers
             return "You probably want to POST with Json:\n\nExample:\n" + JsonHelper.SerializeObject(new JiraCommentRequest { IssueKey = "JRA-1234", Comment = "Insert comment here." });
         }
         [HttpPost]
-        public IHttpActionResult Post([FromBody] JiraCommentRequest request)
+        public ActionResult Post([FromBody] JiraCommentRequest request)
         {
             string issueKey = request.IssueKey;
             string comment = request.Comment;
